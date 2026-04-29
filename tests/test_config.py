@@ -29,6 +29,7 @@ def test_direction_epsilon_default():
 
 
 def test_paths_overridable_via_env(monkeypatch, tmp_path):
+    """Reload required because module-level env-var reads are cached at first import."""
     monkeypatch.setenv("TTA_AACT_DIR", str(tmp_path / "aact"))
     import importlib
 
