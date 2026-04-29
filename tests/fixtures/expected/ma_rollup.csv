@@ -1,4 +1,4 @@
-review_id,review_doi,n_trials,n_unbridgeable,n_trials_with_any_flag,n_outcome_drift_substantive,n_n_drift_flagged,n_direction_flipped,n_results_required_not_posted,crosses_null
-CDFAKE001_pub1,10.1002/14651858.CD012612.pub2,2,0,0,0,0,0,0,False
-CDFAKE002_pub1,10.1002/14651858.CDFAKE001.pub1,2,1,1,0,1,0,1,True
-CDFAKE003_pub1,10.1002/14651858.CD011162.pub2,1,0,1,1,0,0,0,False
+review_id,review_doi,n_trials,n_unbridgeable,n_trials_with_any_flag,n_outcome_drift_substantive,n_n_drift_flagged,n_direction_flipped,n_results_required_not_posted,pooled_effect_log,pooled_ci_low,pooled_ci_high,tau2,pool_method,crosses_null
+CDFAKE001_pub1,10.1002/14651858.CD012612.pub2,2,0,0,0,0,0,0,-0.16429201947987776,-0.9139368371445278,0.5853527981847724,0.0049345570074968755,random_effects_dl_hksj,True
+CDFAKE002_pub1,10.1002/14651858.CDFAKE001.pub1,2,1,1,0,1,0,1,-0.09289340101522843,-0.7297465199798023,0.5439597179493454,0.0,random_effects_dl_hksj,True
+CDFAKE003_pub1,10.1002/14651858.CD011162.pub2,1,0,1,1,0,0,0,-0.4943,-0.7768,-0.2118,0.0,single_trial_passthrough,False

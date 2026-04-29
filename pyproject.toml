@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tta"
-version = "0.1.4"
+version = "0.2.0"
 description = "Trial Truthfulness Atlas — 5th Pairwise70 atlas"
 requires-python = ">=3.11"
 authors = [{name = "Mahmood Ahmad", email = "mahmood726@gmail.com"}]

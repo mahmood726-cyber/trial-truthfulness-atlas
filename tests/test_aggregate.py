@@ -66,20 +66,57 @@ def test_rollup_per_flag_counts(sample_atlas):
     assert cd001["n_results_required_not_posted"] == 1
 
 
-def test_rollup_crosses_null_when_ci_includes_zero(sample_atlas):
-    # v0.1.x convention: crosses_null comes from the FIRST non-null trial CI
-    # in the group (proper per-MA pooled CI is v0.2.0 work).
+def test_rollup_crosses_null_uses_pooled_ci(sample_atlas):
+    """v0.2.0: crosses_null derives from the random-effects POOLED CI,
+    not the first trial's CI (P1-1 fix from multi-persona review)."""
     df = sample_atlas.copy()
     df["ma_ci_low"] = [-0.3, -0.2, None, -0.05, -0.4]
     df["ma_ci_high"] = [-0.1, 0.0, None, 0.15, -0.2]
     out = aggregate.ma_rollup(df)
     cd001 = out[out["review_id"] == "CD001_pub1"].iloc[0]
     cd002 = out[out["review_id"] == "CD002_pub1"].iloc[0]
-    # CD001 first row CI = [-0.3, -0.1] — does NOT include 0.0 → False.
-    # CD002 first row CI = [-0.05, 0.15] — DOES include 0.0 → True.
-    # Pandas may store these as numpy.bool_; compare by value not identity.
-    assert bool(cd001["crosses_null"]) is False
+    # CD001: 2 valid trials (3rd has None CI); k=2 → t_crit = 12.706 at df=1
+    # widens the pooled HKSJ CI substantially → expect True (crosses null).
+    assert bool(cd001["crosses_null"]) is True
+    # CD002: 2 trials with disagreeing effects (0.05, -0.3); pool spans 0.
     assert bool(cd002["crosses_null"]) is True
+    # Both rollups should have the new pooled-effect columns populated.
+    assert cd001["pool_method"] == "random_effects_dl_hksj"
+    assert cd002["pool_method"] == "random_effects_dl_hksj"
+    assert cd001["tau2"] is not None
+    assert cd001["pooled_effect_log"] is not None
+
+
+def test_rollup_pooled_effect_columns_present(sample_atlas):
+    """v0.2.0 schema: ma_rollup output includes pooled_effect_log,
+    pooled_ci_low, pooled_ci_high, tau2, pool_method."""
+    df = sample_atlas.copy()
+    df["ma_ci_low"] = [-0.3, -0.2, None, -0.05, -0.4]
+    df["ma_ci_high"] = [-0.1, 0.0, None, 0.15, -0.2]
+    out = aggregate.ma_rollup(df)
+    for col in ["pooled_effect_log", "pooled_ci_low", "pooled_ci_high",
+                "tau2", "pool_method"]:
+        assert col in out.columns, f"missing column {col}"
+
+
+def test_rollup_pool_method_no_trials_when_effects_missing():
+    """If all rows in a group have NaN effects, pool falls back to no_trials."""
+    df = pd.DataFrame({
+        "nct_id": ["NCT01", "NCT02"],
+        "review_id": ["CD_X", "CD_X"],
+        "review_doi": ["10/CD_X", "10/CD_X"],
+        "bridge_method": ["unbridgeable", "unbridgeable"],
+        "outcome_drift": ["unscoreable", "unscoreable"],
+        "n_drift": ["unscoreable", "unscoreable"],
+        "direction_concordance": ["unscoreable", "unscoreable"],
+        "results_posting": ["unscoreable", "unscoreable"],
+        "ma_effect_log": [None, None],
+    })
+    out = aggregate.ma_rollup(df)
+    row = out.iloc[0]
+    assert row["pool_method"] == "no_trials"
+    assert row["pooled_effect_log"] is None
+    assert row["crosses_null"] is None
 
 
 def test_rollup_handles_truly_empty_dataframe():
