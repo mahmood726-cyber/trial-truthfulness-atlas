@@ -1,0 +1,126 @@
+{
+  "fixture_version": "1.0.0",
+  "snapshot_date": "2026-04-12",
+  "trials": [
+    {
+      "study_label": "McMurray 2014",
+      "review_doi": "10.1002/14651858.CD012612.pub2",
+      "expected_nct": "NCT01035255",
+      "expected_pmid": "25176015",
+      "trial_acronym": "PARADIGM-HF",
+      "registered_outcome": "Composite endpoint of CV death and HF hospitalisation",
+      "ma_extracted_outcome": "CV death or HF hospitalisation",
+      "registered_n": 8442,
+      "ma_n": 8442,
+      "registered_effect_sign": -1,
+      "ma_effect_sign": -1,
+      "ma_effect_value": -0.223,
+      "registered_completion_date": "2014-03-31",
+      "results_first_posted_date": "2015-01-09",
+      "fdaaa_applicable": true,
+      "expected_flags": {
+        "bridge": "bridged",
+        "outcome_drift": "identical",
+        "n_drift": "not_flagged",
+        "direction_concordance": "concordant",
+        "results_posting": "posted"
+      }
+    },
+    {
+      "study_label": "Armstrong 2020",
+      "review_doi": "10.1002/14651858.CD013650.pub2",
+      "expected_nct": "NCT02861534",
+      "expected_pmid": "32222134",
+      "trial_acronym": "VICTORIA",
+      "registered_outcome": "Time to first occurrence of CV death or HF hospitalisation",
+      "ma_extracted_outcome": "CV death or HF hospitalisation",
+      "registered_n": 5050,
+      "ma_n": 5050,
+      "registered_effect_sign": -1,
+      "ma_effect_sign": -1,
+      "ma_effect_value": -0.105,
+      "registered_completion_date": "2020-05-15",
+      "results_first_posted_date": "2020-03-30",
+      "fdaaa_applicable": true,
+      "expected_flags": {
+        "bridge": "bridged",
+        "outcome_drift": "refinement",
+        "n_drift": "not_flagged",
+        "direction_concordance": "concordant",
+        "results_posting": "posted"
+      }
+    },
+    {
+      "study_label": "Sitbon 2015",
+      "review_doi": "10.1002/14651858.CD011162.pub2",
+      "expected_nct": "NCT01106014",
+      "expected_pmid": "26308684",
+      "trial_acronym": "GRIPHON",
+      "registered_outcome": "Composite morbidity-mortality endpoint",
+      "ma_extracted_outcome": "All-cause mortality at 12 weeks",
+      "registered_n": 1156,
+      "ma_n": 1150,
+      "registered_effect_sign": -1,
+      "ma_effect_sign": -1,
+      "ma_effect_value": -0.405,
+      "registered_completion_date": "2014-09-30",
+      "results_first_posted_date": "2015-08-27",
+      "fdaaa_applicable": true,
+      "expected_flags": {
+        "bridge": "bridged",
+        "outcome_drift": "substantively_different",
+        "n_drift": "not_flagged",
+        "direction_concordance": "concordant",
+        "results_posting": "posted"
+      }
+    },
+    {
+      "study_label": "Synthetic-NDrift 2018",
+      "review_doi": "10.1002/14651858.CDFAKE001.pub1",
+      "expected_nct": "NCT99999001",
+      "expected_pmid": "99999001",
+      "trial_acronym": "FIXTURE-N",
+      "registered_outcome": "All-cause mortality",
+      "ma_extracted_outcome": "All-cause mortality",
+      "registered_n": 1000,
+      "ma_n": 700,
+      "registered_effect_sign": -1,
+      "ma_effect_sign": -1,
+      "ma_effect_value": -0.15,
+      "registered_completion_date": "2018-06-01",
+      "results_first_posted_date": null,
+      "fdaaa_applicable": true,
+      "expected_flags": {
+        "bridge": "bridged",
+        "outcome_drift": "identical",
+        "n_drift": "flagged",
+        "direction_concordance": "concordant",
+        "results_posting": "required_not_posted"
+      }
+    },
+    {
+      "study_label": "Unknown Author 1999",
+      "review_doi": "10.1002/14651858.CDFAKE002.pub1",
+      "expected_nct": null,
+      "expected_pmid": null,
+      "trial_acronym": null,
+      "registered_outcome": null,
+      "ma_extracted_outcome": "Mortality",
+      "registered_n": null,
+      "ma_n": 200,
+      "registered_effect_sign": null,
+      "ma_effect_sign": -1,
+      "ma_effect_value": -0.05,
+      "registered_completion_date": null,
+      "results_first_posted_date": null,
+      "fdaaa_applicable": null,
+      "expected_flags": {
+        "bridge": "unbridgeable",
+        "outcome_drift": "unscoreable",
+        "n_drift": "unscoreable",
+        "direction_concordance": "unscoreable",
+        "results_posting": "unscoreable"
+      }
+    }
+  ]
+}

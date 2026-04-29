@@ -1,3 +1,4 @@
+import json
 import os
 from pathlib import Path
 
@@ -39,3 +40,13 @@ def test_paths_overridable_via_env(monkeypatch, tmp_path):
     finally:
         monkeypatch.delenv("TTA_AACT_DIR")
         importlib.reload(config)
+
+
+def test_cardio_5_trials_fixture_parses():
+    fixture_path = Path(__file__).parent / "fixtures" / "cardio_5_trials.json"
+    data = json.loads(fixture_path.read_text(encoding="utf-8"))
+    assert data["fixture_version"] == "1.0.0"
+    assert len(data["trials"]) == 5
+    flag_keys = {"bridge", "outcome_drift", "n_drift", "direction_concordance", "results_posting"}
+    for t in data["trials"]:
+        assert set(t["expected_flags"].keys()) == flag_keys
