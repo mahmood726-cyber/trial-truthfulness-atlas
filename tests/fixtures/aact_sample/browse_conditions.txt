@@ -1,0 +1,6 @@
+nct_id|mesh_term|downcase_mesh_term
+NCT01035255|Heart Failure|heart failure
+NCT02861534|Heart Failure|heart failure
+NCT01106014|Pulmonary Arterial Hypertension|pulmonary arterial hypertension
+NCT99999001|Heart Failure|heart failure
+NCT99999009|Mouth Diseases|mouth diseases

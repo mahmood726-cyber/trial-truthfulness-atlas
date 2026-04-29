@@ -1,0 +1,6 @@
+nct_id|intervention_type|name
+NCT01035255|drug|sacubitril/valsartan
+NCT02861534|drug|vericiguat
+NCT01106014|drug|selexipag
+NCT99999001|drug|fixturedrug
+NCT99999009|behavioral|education

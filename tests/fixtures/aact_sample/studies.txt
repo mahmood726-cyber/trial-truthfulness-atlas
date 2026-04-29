@@ -1,0 +1,6 @@
+nct_id|study_type|phase|completion_date|results_first_posted_date
+NCT01035255|interventional|Phase 3|2014-03-31|2015-01-09
+NCT02861534|interventional|Phase 3|2020-05-15|2020-03-30
+NCT01106014|interventional|Phase 3|2014-09-30|2015-08-27
+NCT99999001|interventional|Phase 3|2018-06-01|
+NCT99999009|observational|N/A|2019-01-01|

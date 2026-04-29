@@ -1,0 +1,5 @@
+nct_id|outcome_type|measure
+NCT01035255|primary|Composite endpoint of CV death and HF hospitalisation
+NCT02861534|primary|Time to first occurrence of CV death or HF hospitalisation
+NCT01106014|primary|Composite morbidity-mortality endpoint
+NCT99999001|primary|All-cause mortality
