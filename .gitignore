@@ -1,3 +1,6 @@
+# Worktrees (isolation per superpowers skill)
+.worktrees/
+
 # Local working data — never commit
 data/
 *.parquet
