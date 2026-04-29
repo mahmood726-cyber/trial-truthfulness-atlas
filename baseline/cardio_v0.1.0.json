@@ -1,0 +1,30 @@
+{
+  "version": "0.1.0",
+  "snapshot_date": "2026-04-12",
+  "pairwise70_files": 2,
+  "ollama_model": "gemma2:9b",
+  "prompt_sha_outcome_drift": "9f441c9f842719cb17cb13f50a973bcb21318ea0cfe6d4208d63ca3c4789cbb9",
+  "n_drift_threshold": 0.10,
+  "direction_epsilon": 0.01,
+  "fixture_5trial": {
+    "n_trials": 5,
+    "bridge_resolution_rate": 0.80,
+    "per_flag_rates": {
+      "bridge": {"bridged": 4, "unbridgeable": 1},
+      "outcome_drift": {
+        "identical": 2,
+        "refinement": 1,
+        "substantively_different": 1,
+        "unscoreable": 1
+      },
+      "n_drift": {"not_flagged": 3, "flagged": 1, "unscoreable": 1},
+      "direction_concordance": {"concordant": 4, "flipped": 0, "unscoreable": 1},
+      "results_posting": {
+        "posted": 3,
+        "required_not_posted": 1,
+        "not_required": 1,
+        "unscoreable": 0
+      }
+    }
+  }
+}
