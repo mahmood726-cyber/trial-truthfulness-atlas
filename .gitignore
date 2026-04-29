@@ -1,0 +1,24 @@
+# Local working data — never commit
+data/
+*.parquet
+outputs/*.csv
+outputs/judge_cache/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# Session state (per workflow rules)
+PROGRESS.md
+STUCK_FAILURES.md
+STUCK_FAILURES.jsonl
+sentinel-findings.md
+sentinel-findings.jsonl
+
+# OS
+.DS_Store
+Thumbs.db
