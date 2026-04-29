@@ -14,15 +14,19 @@ from tta import pipeline
 
 @pytest.fixture
 def stub_ollama():
-    """Returns labels in fixture order — only used on cache miss."""
+    """Returns labels in pipeline-processing order (sorted by review_id):
+    CDFAKE001 (PARADIGM-HF, VICTORIA) -> CDFAKE002 (FIXTURE-N, Unknown) ->
+    CDFAKE003 (GRIPHON). v0.1.1 split GRIPHON to its own .rda because no
+    Cochrane review pools PAH and HFrEF; this changes the LLM-call order."""
     client = MagicMock()
     client.get_model_version.return_value = "gemma2:9b@stub_for_test"
     client.classify.side_effect = [
-        "identical",                # PARADIGM-HF
-        "refinement",               # VICTORIA
-        "substantively_different",  # GRIPHON
-        "identical",                # FIXTURE-N
-        # Trial 5 is unscoreable upstream, no LLM call
+        "identical",                # PARADIGM-HF (CDFAKE001)
+        "refinement",               # VICTORIA (CDFAKE001)
+        "identical",                # FIXTURE-N (CDFAKE002)
+        # Unknown Author 1999 (CDFAKE002) — registered_outcome is None,
+        # compute_one returns "unscoreable" without calling LLM
+        "substantively_different",  # GRIPHON (CDFAKE003)
     ]
     return client
 

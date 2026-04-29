@@ -1,7 +1,7 @@
 {
-  "version": "0.1.0",
+  "version": "0.1.1",
   "snapshot_date": "2026-04-12",
-  "pairwise70_files": 2,
+  "pairwise70_files": 3,
   "ollama_model": "gemma2:9b",
   "prompt_sha_outcome_drift": "9f441c9f842719cb17cb13f50a973bcb21318ea0cfe6d4208d63ca3c4789cbb9",
   "n_drift_threshold": 0.10,

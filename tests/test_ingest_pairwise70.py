@@ -11,15 +11,20 @@ def test_load_pairwise70_one_file(fixtures_dir):
     )
     assert "Study" in df.columns
     assert "review_doi" in df.columns
-    assert len(df) == 3
+    # CDFAKE001 holds 2 HFrEF trials (PARADIGM-HF + VICTORIA); GRIPHON moved
+    # to CDFAKE003 in v0.1.1 because no Cochrane review pools PAH and HFrEF.
+    assert len(df) == 2
     assert df.attrs["review_id"] == "CDFAKE001_pub1"
 
 
 def test_load_all_pairwise70_in_dir(fixtures_dir):
     df = ingest.load_pairwise70_dir(fixtures_dir / "pairwise70_sample")
+    # 5 trials across 3 .rda files (v0.1.1: GRIPHON moved to CDFAKE003).
     assert len(df) == 5
     assert "review_id" in df.columns
-    assert set(df["review_id"]) == {"CDFAKE001_pub1", "CDFAKE002_pub1"}
+    assert set(df["review_id"]) == {
+        "CDFAKE001_pub1", "CDFAKE002_pub1", "CDFAKE003_pub1",
+    }
 
 
 def test_pairwise70_to_parquet(fixtures_dir, tmp_path):

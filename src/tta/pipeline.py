@@ -49,12 +49,27 @@ def _enrich_with_aact(
         .set_index("nct_id")["param_value"]
         .astype(float)
     )
+    # math.log raises ValueError on hr <= 0; AACT param_value is free-text and
+    # may legitimately or accidentally hold non-positive values. Guard the call.
     out["registered_effect_log"] = out["nct_id"].map(
-        lambda nct: math.log(hr[nct]) if nct in hr.index and not pd.isna(hr[nct]) else None
+        lambda nct: math.log(hr[nct])
+        if nct in hr.index and not pd.isna(hr[nct]) and hr[nct] > 0
+        else None
     )
 
     studies = aact_studies.drop_duplicates("nct_id").set_index("nct_id")
-    out["completion_date"] = out["nct_id"].map(studies["completion_date"])
+    # FDAAA 42 CFR 11.64(b)(1)(ii) anchors the 12-month posting deadline to
+    # primary_completion_date; completion_date is the LAST data-collection date
+    # (primary + secondary endpoints) and is always >= primary_completion_date.
+    # Using completion_date would give trials more clock time than statute
+    # allows, undercounting violations. Fall back to completion_date only when
+    # primary_completion_date is missing.
+    if "primary_completion_date" in studies.columns:
+        primary_cd = out["nct_id"].map(studies["primary_completion_date"])
+        completion = out["nct_id"].map(studies["completion_date"])
+        out["completion_date"] = primary_cd.where(primary_cd.notna(), completion)
+    else:
+        out["completion_date"] = out["nct_id"].map(studies["completion_date"])
     out["results_first_posted_date"] = out["nct_id"].map(studies["results_first_posted_date"])
     out["study_type"] = out["nct_id"].map(studies["study_type"])
 

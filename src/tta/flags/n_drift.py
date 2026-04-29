@@ -9,8 +9,14 @@ import pandas as pd
 
 from tta import config
 
+# Negation phrase + the number that immediately follows it. Replacing the WHOLE
+# match (including the count) is what prevents the Verquvo regression: matching
+# only the phrase leaves the number behind for NUMBER_RE to pick up if it
+# happens to appear before any legitimate count.
 NEGATION_BEFORE = re.compile(
-    r"(?:not|non[- ]?|never|no(?:t)?[- ]?(?:yet)?|withdrawn[- ]?before)\s*[-]?\s*(?:randomi[sz]ed|enrolled|analy[sz]ed)\s+",
+    r"(?:not|non[- ]?|never|no(?:t)?[- ]?(?:yet)?|withdrawn[- ]?before)"
+    r"\s*[-]?\s*(?:randomi[sz]ed|enrolled|analy[sz]ed)"
+    r"\s+(?:\d{1,3}(?:[,\s]\d{3})+|\d+)\b",
     re.IGNORECASE,
 )
 NUMBER_RE = re.compile(r"\b(\d{1,3}(?:[, ]\d{3})*|\d+)\b")

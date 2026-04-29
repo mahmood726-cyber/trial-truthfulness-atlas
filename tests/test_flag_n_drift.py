@@ -47,6 +47,25 @@ def test_extract_returns_none_when_no_numbers():
     assert n_drift.extract_first_n("no numbers here") is None
 
 
+def test_negation_scrubber_drops_negated_number_when_it_appears_first():
+    """Verquvo regression: the bug is most visible when the negated number
+    appears BEFORE any legitimate count. The scrub must consume the digits
+    that follow the negation phrase, not just the phrase itself."""
+    text = "Not Randomized 1807. Of those enrolled, 5050 were analysed."
+    found = n_drift.extract_first_n(text)
+    assert found == 5050  # 1807 must NOT win even though it appears first
+
+
+def test_negation_scrubber_returns_none_when_only_negated_count_present():
+    text = "Not Randomized 1807."
+    assert n_drift.extract_first_n(text) is None
+
+
+def test_negation_scrubber_handles_thousands_with_comma():
+    text = "Not Randomized 1,807. Total 5,050 enrolled."
+    assert n_drift.extract_first_n(text) == 5050
+
+
 def test_compute_dataframe_uses_threshold_from_config():
     df = pd.DataFrame({
         "nct_id": ["a", "b", "c", "d"],

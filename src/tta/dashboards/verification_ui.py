@@ -11,7 +11,8 @@ from pathlib import Path
 
 import pandas as pd
 
-LOCALSTORAGE_KEY = "tta-verification-v0.1.0"
+# Repo-slug-prefixed to avoid collision on the multi-tenant github.io origin.
+LOCALSTORAGE_KEY = "tta/trial-truthfulness-atlas/verification-v0.1.0"
 
 _CSS = """
 body { font-family: -apple-system, system-ui, sans-serif; max-width: 900px;
@@ -108,11 +109,32 @@ function record(decision) {
   save(state);
   next();
 }
-function fmt(v) {
+// HTML-entity-escape — required because innerHTML is used below for
+// performance. Without this, a study label with <img onerror=...> XSSes.
+function esc(v) {
   if (v === null || v === undefined) return "—";
-  return String(v);
+  return String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+                  .replace(/>/g, "&gt;").replace(/"/g, "&quot;")
+                  .replace(/'/g, "&#39;");
 }
+// CSS class fragments must be alphanumeric/underscore — guard against
+// injection of attribute-breaking characters via flag values.
+var SAFE_CLASS_RE = /^[a-z_]+$/;
+function safeClass(v) {
+  return SAFE_CLASS_RE.test(String(v)) ? String(v) : "unknown";
+}
+// Backward-compat alias (pre-XSS-fix code referenced fmt()).
+function fmt(v) { return esc(v); }
 function render() {
+  if (!TRIALS.length) {
+    document.getElementById("trial-card-host").innerHTML =
+      '<div class="trial-card"><h2>No trials to review</h2>'
+      + '<p>The atlas is empty. Run <code>tta build --fixture-mode</code> '
+      + 'to populate it.</p></div>';
+    document.getElementById("prev").disabled = true;
+    document.getElementById("next").disabled = true;
+    return;
+  }
   var t = TRIALS[idx];
   var flags = ["bridge_method", "outcome_drift", "n_drift",
                "direction_concordance", "results_posting"];
@@ -133,9 +155,11 @@ function render() {
         + '<span class="flag-value">' + fmt(t.ma_n) + '</span></div>';
   for (var i = 0; i < flags.length; i++) {
     var f = flags[i];
-    var v = fmt(t[f]);
-    rows += '<div class="flag-row"><span class="flag-label">' + f + '</span>'
-          + '<span class="flag-value flag-value-' + v + '">' + v + '</span></div>';
+    var raw = t[f];
+    var v = esc(raw);
+    var cls = safeClass(raw);
+    rows += '<div class="flag-row"><span class="flag-label">' + esc(f) + '</span>'
+          + '<span class="flag-value flag-value-' + cls + '">' + v + '</span></div>';
   }
   document.getElementById("trial-card-host").innerHTML =
     '<div class="trial-card"><h2>' + fmt(t.Study) + '</h2>' + rows
@@ -178,9 +202,10 @@ render();
 
 def render(atlas: pd.DataFrame, title: str) -> str:
     trials = [_trial_to_dict(r) for _, r in atlas.iterrows()]
-    # Escape any </script> sequences in the JSON data so they can't break the
-    # HTML parser — replaces </ with <\/ which is valid JSON and safe in HTML.
-    trials_json = json.dumps(trials, ensure_ascii=False).replace("</", "<\\/")
+    # ensure_ascii=True forces non-ASCII to \uXXXX so multi-byte sequences
+    # cannot resolve to </script>; the .replace then covers the literal-ASCII
+    # </ case. Both layers are needed against Unicode-bypass attacks.
+    trials_json = json.dumps(trials, ensure_ascii=True).replace("</", "<\\/")
     return (_TEMPLATE
             .replace("__TITLE__", escape(title))
             .replace("__CSS__", _CSS)

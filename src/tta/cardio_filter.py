@@ -10,6 +10,10 @@ import pandas as pd
 
 DOI_LIST_PATH = Path(__file__).parent / "data" / "cochrane_heart_review_dois.txt"
 
+# Lowercased MeSH descriptors as they appear in AACT browse_conditions.
+# Source: NLM MeSH 2026; cross-checked against Cochrane Heart Group scope.
+# v0.1.1 corrected "valvular heart disease" -> "heart valve diseases"
+# (D006349) and added 6 conditions previously missing.
 CARDIOVASCULAR_MESH_TERMS = frozenset(
     {
         "heart failure",
@@ -21,8 +25,14 @@ CARDIOVASCULAR_MESH_TERMS = frozenset(
         "stroke",
         "cardiovascular diseases",
         "pulmonary arterial hypertension",
-        "valvular heart disease",
+        "heart valve diseases",
         "arrhythmias, cardiac",
+        "cardiomyopathies",
+        "peripheral vascular diseases",
+        "aortic diseases",
+        "heart defects, congenital",
+        "pulmonary embolism",
+        "heart arrest",
     }
 )
 

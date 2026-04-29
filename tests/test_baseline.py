@@ -12,9 +12,12 @@ def test_baseline_file_exists():
 
 def test_baseline_required_keys():
     data = json.loads(BASELINE.read_text(encoding="utf-8"))
-    assert data["version"] == "0.1.0"
+    assert data["version"] in {"0.1.0", "0.1.1"}
     assert data["snapshot_date"] == "2026-04-12"
-    assert data["pairwise70_files"] >= 590 or data["pairwise70_files"] == 2  # fixture vs. real
+    # Fixture: 3 .rda files in v0.1.1 (was 2 in v0.1.0; GRIPHON moved to its
+    # own .rda because no Cochrane review pools PAH and HFrEF). Real-data
+    # sweep would have 590+.
+    assert data["pairwise70_files"] >= 590 or data["pairwise70_files"] in {2, 3}
     assert "fixture_5trial" in data
     fx = data["fixture_5trial"]
     assert fx["bridge_resolution_rate"] == 0.80

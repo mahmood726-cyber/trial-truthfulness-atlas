@@ -7,8 +7,18 @@ from typing import Iterable, Optional
 
 import pandas as pd
 
+# `device` is included for v0.1.0 simplicity, but FDAAA 801 / 42 CFR
+# 11.22(b)(1) only covers Applicable Device Clinical Trials (significant-risk
+# IDE trials). Non-SR device trials are exempt. v0.2.0 should join
+# AACT `expanded_access_info` / `study_design_info` to approximate IDE
+# status; until then, v0.1.0 will overcount on device trials.
 FDAAA_INTERVENTION_TYPES = frozenset({"drug", "biological", "device"})
-FDAAA_DEADLINE_DAYS = 365  # 12 months between completion and required posting
+
+# 12 months in 42 CFR 11.64(b)(1)(ii); we use 365 days as a calendar
+# approximation (off-by-one across leap years). The anchor is the trial's
+# primary_completion_date; pipeline._enrich_with_aact resolves that and
+# falls back to completion_date only when primary is missing.
+FDAAA_DEADLINE_DAYS = 365
 
 
 def _is_fdaaa_applicable(

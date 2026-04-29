@@ -9,7 +9,7 @@ import pandas as pd
 import pyreadr
 
 DATE_COLUMNS_BY_TABLE = {
-    "studies": ["completion_date", "results_first_posted_date"],
+    "studies": ["completion_date", "primary_completion_date", "results_first_posted_date"],
 }
 
 

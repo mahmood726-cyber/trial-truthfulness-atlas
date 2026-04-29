@@ -3,6 +3,10 @@
 Both inputs assumed on the LOG scale (logHR / logOR / logRR / SMD). AACT
 HR/OR/RR values arrive on natural scale and must be log-transformed via
 `hr_to_log_effect` before classification.
+
+v0.1.0 scope: pipeline only joins AACT `outcome_analyses` rows where
+`param_type == "Hazard Ratio"`. Risk Ratio, Odds Ratio, and Mean Difference
+joins are deferred to v0.2.0 (RR/OR also need log; MD does not).
 """
 
 from __future__ import annotations

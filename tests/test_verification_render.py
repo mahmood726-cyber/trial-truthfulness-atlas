@@ -46,7 +46,73 @@ def test_render_inlines_no_external_resources(sample_atlas):
 
 def test_render_uses_unique_localstorage_key(sample_atlas):
     out = verification_ui.render(sample_atlas, title="x")
-    assert "tta-verification-v0.1.0" in out
+    # Repo-slug-prefixed to avoid collision on multi-tenant github.io origin.
+    assert "tta/trial-truthfulness-atlas/verification-v0.1.0" in out
+
+
+def test_render_includes_html_entity_escape_function():
+    """JS-side defence-in-depth: esc() must exist and HTML-escape `<`, `>`, etc.
+    Trial data is round-tripped through JSON to JS; XSS prevention happens at
+    innerHTML assembly time via esc(). Python tests can't run the JS, so we
+    verify the escape primitives are present."""
+    df = pd.DataFrame({
+        "nct_id": ["NCT01"], "review_id": ["x"], "review_doi": ["x"],
+        "Study": ["A"], "bridge_method": ["dossiergap_direct"],
+        "outcome_drift": ["identical"], "n_drift": ["not_flagged"],
+        "direction_concordance": ["concordant"], "results_posting": ["posted"],
+    })
+    out = verification_ui.render(df, title="x")
+    # All five entity replacements must be present in the JS escape function.
+    assert "&amp;" in out
+    assert "&lt;" in out
+    assert "&gt;" in out
+    assert "&quot;" in out
+    assert "&#39;" in out
+
+
+def test_render_class_name_uses_safe_class_whitelist():
+    """JS-side defence: flag values are constrained to [a-z_]+ before becoming
+    a class fragment, so `flagged" onmouseover=alert(1)` cannot inject."""
+    df = pd.DataFrame({
+        "nct_id": ["NCT01"], "review_id": ["x"], "review_doi": ["x"],
+        "Study": ["A"], "bridge_method": ["dossiergap_direct"],
+        "outcome_drift": ["identical"], "n_drift": ["not_flagged"],
+        "direction_concordance": ["concordant"], "results_posting": ["posted"],
+    })
+    out = verification_ui.render(df, title="x")
+    assert "SAFE_CLASS_RE" in out
+    assert "/^[a-z_]+$/" in out
+    assert "safeClass" in out
+
+
+def test_render_uses_ensure_ascii_for_unicode_safety():
+    """Non-ASCII trial fields must be escaped to \\uXXXX so multi-byte
+    sequences cannot resolve to </script> in the parser."""
+    df = pd.DataFrame({
+        "nct_id": ["NCT01"],
+        "review_id": ["x"], "review_doi": ["x"],
+        "Study": ["Übersicht-2024"],
+        "bridge_method": ["dossiergap_direct"],
+        "outcome_drift": ["identical"], "n_drift": ["not_flagged"],
+        "direction_concordance": ["concordant"], "results_posting": ["posted"],
+    })
+    out = verification_ui.render(df, title="x")
+    # The Ü (U+00DC) must be escaped to Ü inside the embedded JSON.
+    assert "\\u00dc" in out
+    # And must NOT appear as a raw multi-byte character.
+    assert "Ü" not in out
+
+
+def test_render_handles_empty_atlas_without_crash():
+    """Empty atlas must render a no-trials message without TypeError on the JS side.
+    Python-side: just verify it produces valid HTML."""
+    df = pd.DataFrame(columns=["nct_id", "review_id", "review_doi", "Study",
+                               "bridge_method", "outcome_drift", "n_drift",
+                               "direction_concordance", "results_posting"])
+    out = verification_ui.render(df, title="x")
+    assert "</html>" in out
+    # The JS guard must be present
+    assert "No trials to review" in out
 
 
 def test_render_one_trial_at_a_time(sample_atlas):
