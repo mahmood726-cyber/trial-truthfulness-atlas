@@ -1,3 +1,4 @@
+<!-- sentinel:skip-file — paths in this README are user-facing setup documentation, not shipped code -->
 # Trial Truthfulness Atlas (TTA) — v0.1.0
 
 Fifth Pairwise70 atlas. Asks the **upstream** question the prior four

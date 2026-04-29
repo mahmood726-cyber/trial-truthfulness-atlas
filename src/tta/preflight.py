@@ -22,7 +22,7 @@ class Check:
 def _check_aact(aact_dir: Path) -> Check:
     if not aact_dir.is_dir():
         return Check("AACT snapshot directory", False, f"missing: {aact_dir}",
-                    "Re-download AACT snapshot to D:/AACT-storage/AACT/<date>/")
+                    "Re-download AACT snapshot to the configured TTA_AACT_DIR")
     studies = aact_dir / "studies.txt"
     if not studies.is_file():
         return Check("AACT snapshot directory", False,
@@ -34,7 +34,7 @@ def _check_aact(aact_dir: Path) -> Check:
 def _check_pairwise70(pw_dir: Path, min_files: int = 590) -> Check:
     if not pw_dir.is_dir():
         return Check("Pairwise70 directory", False, f"missing: {pw_dir}",
-                    "Restore Pairwise70 .rda files to C:/Projects/Pairwise70/data/")
+                    "Restore Pairwise70 .rda files to the configured TTA_PAIRWISE70_DIR")
     rda_count = sum(1 for _ in pw_dir.glob("*.rda"))
     if rda_count < min_files:
         return Check("Pairwise70 directory", False,

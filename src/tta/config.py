@@ -1,3 +1,4 @@
+# sentinel:skip-file — canonical path defaults; every default is overridable via TTA_* env vars
 """Path + threshold configuration. All values overridable via env vars."""
 
 from __future__ import annotations
