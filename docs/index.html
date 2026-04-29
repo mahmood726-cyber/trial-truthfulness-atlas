@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta property="og:title" content="Trial Truthfulness Atlas v0.1.3 — fixture"><meta property="og:type" content="website"><meta property="og:description" content="Trial Truthfulness Atlas — integrity flags between CT.gov registration and Cochrane MA inputs."><title>Trial Truthfulness Atlas v0.1.3 — fixture</title><style>body { font-family: -apple-system, system-ui, sans-serif; max-width: 1200px;
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta property="og:title" content="Trial Truthfulness Atlas v0.1.4 — fixture"><meta property="og:type" content="website"><meta property="og:description" content="Trial Truthfulness Atlas — integrity flags between CT.gov registration and Cochrane MA inputs."><title>Trial Truthfulness Atlas v0.1.4 — fixture</title><style>body { font-family: -apple-system, system-ui, sans-serif; max-width: 1200px;
        margin: 2em auto; color: #1a1a1a; padding: 0 1em; }
 h1 { border-bottom: 2px solid #333; padding-bottom: 0.3em; }
 .summary { background: #f6f8fa; padding: 1em; border-radius: 6px; margin: 1em 0; }
@@ -18,13 +18,21 @@ table.atlas thead { background: #333; color: #fff; }
 table.atlas tbody tr:nth-child(even) { background: #fafafa; }
 @media (max-width: 600px) {
   table.atlas { font-size: 0.78em; min-width: 600px; }
+}
+@media print {
+  body { color: #000; max-width: none; margin: 0; padding: 1cm; }
+  table.atlas { page-break-inside: auto; font-size: 9pt; }
+  table.atlas thead { background: #fff; color: #000;
+                      border-bottom: 2px solid #000; }
+  table.atlas tr { page-break-inside: avoid; }
+  .pill { background: #fff; border: 1px solid #000; }
 }</style></head>
 <body>
 <main>
-<h1>Trial Truthfulness Atlas v0.1.3 — fixture</h1>
+<h1>Trial Truthfulness Atlas v0.1.4 — fixture</h1>
 <p><strong>Trials:</strong> 5</p>
 <section class="summary"><h2>Per-flag summary</h2><div class="summary-row"><strong>Outcome drift:</strong> <span class="pill pill-identical">identical: 2</span> <span class="pill pill-refinement">refinement: 1</span> <span class="pill pill-substantively_different">substantively_different: 1</span> <span class="pill pill-unscoreable">unscoreable: 1</span></div><div class="summary-row"><strong>N drift:</strong> <span class="pill pill-flagged">flagged: 1</span> <span class="pill pill-not_flagged">not_flagged: 3</span> <span class="pill pill-unscoreable">unscoreable: 1</span></div><div class="summary-row"><strong>Direction concordance:</strong> <span class="pill pill-concordant">concordant: 4</span> <span class="pill pill-unscoreable">unscoreable: 1</span></div><div class="summary-row"><strong>Results posting:</strong> <span class="pill pill-not_required">not_required: 1</span> <span class="pill pill-posted">posted: 3</span> <span class="pill pill-required_not_posted">required_not_posted: 1</span></div></section>
-<div class="table-wrap"><table class="atlas"><thead><tr><th scope="col">nct_id</th><th scope="col">Study</th><th scope="col">review_id</th><th scope="col">bridge_method</th><th scope="col">outcome_drift</th><th scope="col">n_drift</th><th scope="col">direction_concordance</th><th scope="col">results_posting</th></tr></thead><tbody><tr><td>NCT01035255</td><td>McMurray 2014</td><td>CDFAKE001_pub1</td><td>dossiergap_direct</td><td>identical</td><td>not_flagged</td><td>concordant</td><td>posted</td></tr><tr><td>NCT02861534</td><td>Armstrong 2020</td><td>CDFAKE001_pub1</td><td>dossiergap_direct</td><td>refinement</td><td>not_flagged</td><td>concordant</td><td>posted</td></tr><tr><td>NCT99999001</td><td>Synthetic-NDrift 2018</td><td>CDFAKE002_pub1</td><td>dossiergap_direct</td><td>identical</td><td>flagged</td><td>concordant</td><td>required_not_posted</td></tr><tr><td>—</td><td>Unknown Author 1999</td><td>CDFAKE002_pub1</td><td>unbridgeable</td><td>unscoreable</td><td>unscoreable</td><td>unscoreable</td><td>not_required</td></tr><tr><td>NCT01106014</td><td>Sitbon 2015</td><td>CDFAKE003_pub1</td><td>dossiergap_direct</td><td>substantively_different</td><td>not_flagged</td><td>concordant</td><td>posted</td></tr></tbody></table></div>
+<div class="table-wrap"><table class="atlas"><thead><tr><th scope="col" data-field="nct_id">NCT</th><th scope="col" data-field="Study">Study</th><th scope="col" data-field="review_id">Review</th><th scope="col" data-field="bridge_method">Bridge</th><th scope="col" data-field="outcome_drift">Outcome drift</th><th scope="col" data-field="n_drift">N drift</th><th scope="col" data-field="direction_concordance">Direction</th><th scope="col" data-field="results_posting">Results posting</th></tr></thead><tbody><tr><td>NCT01035255</td><td>McMurray 2014</td><td>CDFAKE001_pub1</td><td>dossiergap_direct</td><td>identical</td><td>not_flagged</td><td>concordant</td><td>posted</td></tr><tr><td>NCT02861534</td><td>Armstrong 2020</td><td>CDFAKE001_pub1</td><td>dossiergap_direct</td><td>refinement</td><td>not_flagged</td><td>concordant</td><td>posted</td></tr><tr><td>NCT99999001</td><td>Synthetic-NDrift 2018</td><td>CDFAKE002_pub1</td><td>dossiergap_direct</td><td>identical</td><td>flagged</td><td>concordant</td><td>required_not_posted</td></tr><tr><td>—</td><td>Unknown Author 1999</td><td>CDFAKE002_pub1</td><td>unbridgeable</td><td>unscoreable</td><td>unscoreable</td><td>unscoreable</td><td>not_required</td></tr><tr><td>NCT01106014</td><td>Sitbon 2015</td><td>CDFAKE003_pub1</td><td>dossiergap_direct</td><td>substantively_different</td><td>not_flagged</td><td>concordant</td><td>posted</td></tr></tbody></table></div>
 </main>
 </body>
 </html>

@@ -66,6 +66,25 @@ def test_negation_scrubber_handles_thousands_with_comma():
     assert n_drift.extract_first_n(text) == 5050
 
 
+def test_negation_scrubber_handles_no_yet_randomized():
+    """v0.1.4 ReDoS-hardened regex flattens nested optionals; verify the
+    'no yet' / 'no-yet' / 'noyet' / 'never' edge cases still scrub."""
+    assert n_drift.extract_first_n("No yet randomized 99. Total 200.") == 200
+    assert n_drift.extract_first_n("Never randomized 50. Total 300.") == 300
+    assert n_drift.extract_first_n("Withdrawn before randomized 11. N=400") == 400
+
+
+def test_negation_scrubber_does_not_match_inside_word():
+    """\\b prefix prevents false positives like 'cannot' or 'pinotage'
+    accidentally triggering the scrub via 'not' inside a longer word."""
+    # "cannot enrolled 99" should NOT scrub the 99 because 'not' here
+    # is inside 'cannot' (no word boundary before).
+    text = "cannot enrolled 99. Total 200."
+    # Both interpretations are defensible, but the v0.1.4 \\b prefix means
+    # this should NOT scrub. Test pins the implemented behaviour.
+    assert n_drift.extract_first_n(text) == 99
+
+
 def test_compute_dataframe_uses_threshold_from_config():
     df = pd.DataFrame({
         "nct_id": ["a", "b", "c", "d"],

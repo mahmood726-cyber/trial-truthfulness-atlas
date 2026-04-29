@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import math
 from datetime import date
 from pathlib import Path
@@ -18,6 +19,8 @@ from tta.flags import (
 )
 from tta.judge import cache as cache_mod
 
+logger = logging.getLogger(__name__)
+
 
 def _enrich_with_aact(
     bridged: pd.DataFrame,
@@ -29,6 +32,12 @@ def _enrich_with_aact(
 ) -> pd.DataFrame:
     out = bridged.copy()
 
+    # `drop_duplicates("nct_id")` keeps the FIRST primary-outcome row per
+    # trial. AACT does not guarantee row order; trials with co-primary
+    # endpoints (separate rows for, e.g., CV death and HF hospitalisation)
+    # have their non-first co-primary discarded here. v0.2.0 should join on
+    # `outcome_id` / `result_groups` and pick the row whose Cochrane outcome
+    # label most closely matches the MA-extracted outcome.
     primary_outcomes = (
         aact_design_outcomes[aact_design_outcomes["outcome_type"] == "primary"]
         .drop_duplicates("nct_id")
@@ -108,6 +117,7 @@ def run_5trial_fixture(
     aact_dir = fixtures_dir / "aact_sample"
     pw_dir = pairwise70_dir_override or (fixtures_dir / "pairwise70_sample")
 
+    logger.info("loading Pairwise70 from %s", pw_dir)
     pw = ingest.load_pairwise70_dir(pw_dir)
     pw = cardio_filter.filter_pairwise70(pw)
     pw["ma_n"] = pw.get("Experimental.N", 0).fillna(0).astype(int) + pw.get("Control.N", 0).fillna(0).astype(int)
@@ -115,9 +125,14 @@ def run_5trial_fixture(
     pw["ma_effect_log"] = pw.get("Mean")
     pw["ma_ci_low"] = pw.get("CI.start")
     pw["ma_ci_high"] = pw.get("CI.end")
+    logger.info("filtered to %d cardio trials across %d reviews",
+                len(pw), pw["review_id"].nunique() if not pw.empty else 0)
 
     dg = bridge.load_dossiergap(fixtures_dir / "dossiergap_sample.csv")
     bridged = bridge.bridge_pairwise70(pw, dossiergap=dg, aact_id_information=None)
+    logger.info("Flag 0 bridge resolution: %d/%d (%.1f%%) of trials bridged to NCT",
+                int((bridged["bridge_method"] != "unbridgeable").sum()), len(bridged),
+                100 * bridge.resolution_rate(bridged))
 
     studies = ingest.load_aact_table(aact_dir, "studies")
     design_outcomes = ingest.load_aact_table(aact_dir, "design_outcomes")
@@ -137,7 +152,11 @@ def run_5trial_fixture(
             enriched[col] = enriched[col].where(pd.notna(enriched[col]), other=None)
 
     judge_cache = cache_mod.JudgeCache(out_dir / "judge_cache")
+    cache_size_before = len(judge_cache)
     enriched = outcome_drift.compute_dataframe(enriched, client=ollama_client, cache=judge_cache)
+    cache_size_after = len(judge_cache)
+    logger.info("Flag 1 outcome-drift: %d new cache entries (%d total)",
+                cache_size_after - cache_size_before, cache_size_after)
     enriched = n_drift.compute_dataframe(enriched)
     enriched = direction_concordance.compute_dataframe(enriched)
     # Convert to Python date; replace NaT with None so results_posting.classify
@@ -159,6 +178,8 @@ def run_5trial_fixture(
     out_dir.mkdir(parents=True, exist_ok=True)
     _safe_to_csv(atlas, out_dir / "atlas.csv")
     _safe_to_csv(rollup, out_dir / "ma_rollup.csv")
+    logger.info("wrote atlas.csv (%d trials) + ma_rollup.csv (%d MAs) to %s",
+                len(atlas), len(rollup), out_dir)
     return atlas, rollup
 
 

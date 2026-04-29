@@ -48,3 +48,33 @@ def test_put_is_idempotent(judge_cache_dir):
     c.put("k", {"label": "x"})
     c.put("k", {"label": "x"})  # must not raise
     assert c.get("k") == {"label": "x"}
+
+
+def test_len_counts_cached_entries(judge_cache_dir):
+    c = cache.JudgeCache(judge_cache_dir)
+    assert len(c) == 0
+    c.put("a", {"label": "identical"})
+    c.put("b", {"label": "refinement"})
+    assert len(c) == 2
+
+
+def test_purge_other_versions_removes_stale_model_entries(judge_cache_dir):
+    c = cache.JudgeCache(judge_cache_dir)
+    c.put("k_old1", {"label": "identical", "model_version": "gemma2:9b@old"})
+    c.put("k_old2", {"label": "refinement", "model_version": "gemma2:9b@old"})
+    c.put("k_new", {"label": "concordant", "model_version": "gemma2:9b@new"})
+    removed = c.purge_other_versions("gemma2:9b@new")
+    assert removed == 2
+    assert c.get("k_old1") is None
+    assert c.get("k_old2") is None
+    assert c.get("k_new") == {"label": "concordant", "model_version": "gemma2:9b@new"}
+
+
+def test_purge_removes_unreadable_entries(judge_cache_dir):
+    c = cache.JudgeCache(judge_cache_dir)
+    c.put("ok", {"label": "identical", "model_version": "v1"})
+    # Manually corrupt one entry
+    (judge_cache_dir / "corrupt.json").write_text("not valid json {{", encoding="utf-8")
+    removed = c.purge_other_versions("v1")
+    assert removed == 1  # only the corrupt one was purged; "ok" matches v1
+    assert c.get("ok") is not None

@@ -15,6 +15,20 @@ FLAG_COLUMNS = [
     ("results_posting", "Results posting"),
 ]
 
+# Human-readable labels for the table column headers. Keep field names in
+# the data; render labels in the UI. Values not in this map render as the
+# raw field name.
+COL_LABELS = {
+    "nct_id": "NCT",
+    "Study": "Study",
+    "review_id": "Review",
+    "bridge_method": "Bridge",
+    "outcome_drift": "Outcome drift",
+    "n_drift": "N drift",
+    "direction_concordance": "Direction",
+    "results_posting": "Results posting",
+}
+
 
 def _summary_counts(atlas: pd.DataFrame, column: str) -> Dict[str, int]:
     counts = atlas[column].value_counts(dropna=False).to_dict()
@@ -38,8 +52,12 @@ def _table_html(atlas: pd.DataFrame) -> str:
     cols = ["nct_id", "Study", "review_id", "bridge_method",
             "outcome_drift", "n_drift", "direction_concordance", "results_posting"]
     # scope="col" lets screen readers correctly associate header cells with
-    # the data cells in their column.
-    head = "".join(f'<th scope="col">{escape(c)}</th>' for c in cols)
+    # the data cells in their column. data-field keeps the machine name
+    # available for later JS filtering.
+    head = "".join(
+        f'<th scope="col" data-field="{escape(c)}">{escape(COL_LABELS.get(c, c))}</th>'
+        for c in cols
+    )
     rows = []
     for _, r in atlas.iterrows():
         cells = "".join(
@@ -71,6 +89,14 @@ table.atlas thead { background: #333; color: #fff; }
 table.atlas tbody tr:nth-child(even) { background: #fafafa; }
 @media (max-width: 600px) {
   table.atlas { font-size: 0.78em; min-width: 600px; }
+}
+@media print {
+  body { color: #000; max-width: none; margin: 0; padding: 1cm; }
+  table.atlas { page-break-inside: auto; font-size: 9pt; }
+  table.atlas thead { background: #fff; color: #000;
+                      border-bottom: 2px solid #000; }
+  table.atlas tr { page-break-inside: avoid; }
+  .pill { background: #fff; border: 1px solid #000; }
 }
 """.strip()
 

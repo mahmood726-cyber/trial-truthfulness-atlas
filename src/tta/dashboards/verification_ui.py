@@ -43,8 +43,14 @@ header { display: flex; justify-content: space-between; align-items: baseline; }
   .flag-label { padding-top: 0.2em; }
 }
 .controls { margin-top: 1em; }
-.controls button { margin-right: 0.5em; padding: 0.5em 1em; font-size: 1em;
+/* min-height 44px meets Apple HIG / WCAG 2.5.5 minimum tap target. */
+.controls button { margin-right: 0.5em; padding: 0.7em 1.2em; font-size: 1em;
+                   min-height: 44px; min-width: 44px;
                    border-radius: 4px; border: 1px solid #888; cursor: pointer; }
+.nav button { padding: 0.7em 1.2em; font-size: 1em;
+              min-height: 44px; min-width: 44px;
+              border-radius: 4px; border: 1px solid #888; cursor: pointer;
+              margin-right: 0.5em; }
 .controls button.confirm { background: #d9f0d9; }
 .controls button.disagree { background: #ffd9d9; }
 .controls button.skip { background: #f0e6c0; }

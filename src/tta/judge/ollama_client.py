@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Set
 from urllib.parse import urlparse
 
@@ -9,6 +10,7 @@ import requests
 
 from tta import config
 
+logger = logging.getLogger(__name__)
 _LOOPBACK_HOSTS = frozenset({"localhost", "127.0.0.1", "::1", "[::1]"})
 
 
@@ -55,8 +57,12 @@ class OllamaClient:
                 "num_predict": 16,
             },
         }
+        logger.debug("ollama classify: model=%s prompt=%d chars",
+                     self.model, len(prompt_text))
         r = requests.post(f"{self.url}/api/generate", json=payload, timeout=self.timeout)
         r.raise_for_status()
         raw = r.json().get("response", "").strip().strip("'\"").strip().lower()
         first = raw.split()[0] if raw else ""
-        return first if first in allowed_labels else "unscoreable"
+        label = first if first in allowed_labels else "unscoreable"
+        logger.debug("ollama classify: response=%r -> label=%s", raw[:64], label)
+        return label

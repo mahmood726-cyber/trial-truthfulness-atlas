@@ -60,9 +60,15 @@ def _check_ollama(url: str, model: str) -> Check:
                         f"{model} not installed (have: {sorted(names)})",
                         f"Run: ollama pull {model}")
         return Check("Ollama model", True, f"{model} present at {url}")
-    except Exception as e:
-        return Check("Ollama service", False, f"unreachable: {e}",
-                    f"Start ollama service or set TTA_OLLAMA_URL")
+    except (requests.ConnectionError, requests.Timeout) as e:
+        return Check("Ollama service", False, f"unreachable ({type(e).__name__}): {e}",
+                    "Start ollama service or set TTA_OLLAMA_URL")
+    except requests.HTTPError as e:
+        return Check("Ollama service", False, f"HTTP error: {e}",
+                    "Check ollama server logs")
+    except (ValueError, KeyError) as e:
+        return Check("Ollama service", False, f"unexpected response shape: {e}",
+                    "Verify TTA_OLLAMA_URL points to a real ollama instance")
 
 
 def _check_pubmed() -> Check:
@@ -73,9 +79,13 @@ def _check_pubmed() -> Check:
         )
         r.raise_for_status()
         return Check("PubMed E-utilities", True, "reachable")
-    except Exception as e:
-        return Check("PubMed E-utilities", False, f"unreachable: {e}",
+    except (requests.ConnectionError, requests.Timeout) as e:
+        return Check("PubMed E-utilities", False,
+                    f"unreachable ({type(e).__name__}): {e}",
                     "Check network / NCBI status")
+    except requests.HTTPError as e:
+        return Check("PubMed E-utilities", False, f"HTTP error: {e}",
+                    "Check NCBI service status (https://www.ncbi.nlm.nih.gov/)")
 
 
 def run_checks(

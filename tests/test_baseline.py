@@ -12,7 +12,7 @@ def test_baseline_file_exists():
 
 def test_baseline_required_keys():
     data = json.loads(BASELINE.read_text(encoding="utf-8"))
-    assert data["version"] in {"0.1.0", "0.1.1", "0.1.2", "0.1.3"}
+    assert data["version"] in {"0.1.0", "0.1.1", "0.1.2", "0.1.3", "0.1.4"}
     assert data["snapshot_date"] == "2026-04-12"
     # Fixture: 3 .rda files in v0.1.1 (was 2 in v0.1.0; GRIPHON moved to its
     # own .rda because no Cochrane review pools PAH and HFrEF). Real-data

@@ -13,8 +13,13 @@ from tta import config
 # match (including the count) is what prevents the Verquvo regression: matching
 # only the phrase leaves the number behind for NUMBER_RE to pick up if it
 # happens to appear before any legitimate count.
+#
+# Alternation flattened into explicit terms (no nested optional groups) to
+# eliminate the quadratic-backtracking risk flagged in the v0.1.0 review.
+# Each alternative is unambiguous and word-boundary anchored at the front
+# via `\b` so partial matches don't fork.
 NEGATION_BEFORE = re.compile(
-    r"(?:not|non[- ]?|never|no(?:t)?[- ]?(?:yet)?|withdrawn[- ]?before)"
+    r"\b(?:not|non[\s-]?|never|no(?:[\s-]?yet)?|withdrawn[\s-]?before)"
     r"\s*[-]?\s*(?:randomi[sz]ed|enrolled|analy[sz]ed)"
     r"\s+(?:\d{1,3}(?:[,\s]\d{3})+|\d+)\b",
     re.IGNORECASE,

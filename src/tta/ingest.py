@@ -55,6 +55,11 @@ def _review_id_from_filename(path: Path) -> str:
 
 
 def load_pairwise70_rda(path: Path) -> pd.DataFrame:
+    # Trust assumption: Pairwise70 .rda files are from a fixed, version-controlled
+    # research dataset. pyreadr wraps librdata which is a C parser — a maliciously
+    # crafted .rda could in principle exercise parser-level memory bugs. User-
+    # supplied .rda directories are out of scope; do NOT extend this loader to
+    # accept arbitrary inputs without first wrapping it in a sandbox.
     result = pyreadr.read_r(str(path))
     if not result:
         raise ValueError(f"no R objects in {path}")
