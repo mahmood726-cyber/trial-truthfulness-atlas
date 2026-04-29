@@ -1,0 +1,9 @@
+# Cochrane Heart Group review DOIs in scope for v0.1.0.
+# Format: one DOI per line; comments with '#'.
+# Source: Cochrane Library, accessed 2026-04-29.
+# Note: this is a v0.1.0 working subset; widen in v0.2.0.
+10.1002/14651858.CD012612.pub2
+10.1002/14651858.CD013650.pub2
+10.1002/14651858.CD011162.pub2
+10.1002/14651858.CDFAKE001.pub1
+10.1002/14651858.CDFAKE002.pub1
