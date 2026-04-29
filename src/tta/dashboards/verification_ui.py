@@ -32,6 +32,16 @@ header { display: flex; justify-content: space-between; align-items: baseline; }
 .flag-value-not_flagged, .flag-value-posted { color: #006d32; }
 .flag-value-unscoreable, .flag-value-refinement,
 .flag-value-not_required { color: #886000; }
+.flag-symbol { display: inline-block; width: 1.2em; font-weight: bold; }
+.status-msg { display: block; margin-top: 0.6em; min-height: 1.4em;
+              font-size: 0.9em; color: #666; }
+.status-msg.error { color: #b00020; }
+.trial-card[tabindex] { outline: none; }
+.trial-card[tabindex]:focus { box-shadow: 0 0 0 3px #4a90e2; }
+@media (max-width: 480px) {
+  .flag-row { grid-template-columns: 1fr; }
+  .flag-label { padding-top: 0.2em; }
+}
 .controls { margin-top: 1em; }
 .controls button { margin-right: 0.5em; padding: 0.5em 1em; font-size: 1em;
                    border-radius: 4px; border: 1px solid #888; cursor: pointer; }
@@ -99,8 +109,25 @@ function load() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); }
   catch (e) { return {}; }
 }
+function setStatus(msg, isError) {
+  var el = document.getElementById("status-msg");
+  if (!el) return;
+  el.textContent = msg || "";
+  el.classList.toggle("error", !!isError);
+}
 function save(state) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  // Wrap in try/catch — Safari private browsing throws SecurityError;
+  // any browser can throw QuotaExceededError. Without the catch, the
+  // verification decision would silently fail to persist with no feedback.
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    return true;
+  } catch (e) {
+    setStatus("Saving failed (" + (e.name || "Error") + "). Export now to "
+              + "preserve your work; private browsing or quota may block "
+              + "storage.", true);
+    return false;
+  }
 }
 function record(decision) {
   var state = load();
@@ -110,8 +137,24 @@ function record(decision) {
     at: new Date().toISOString(),
     snapshot: t
   };
-  save(state);
+  if (save(state)) {
+    setStatus("Recorded: " + decision);
+  }
   next();
+}
+// Color-blind-safe symbol prefix per flag value. Pairs with the existing
+// red/green/yellow color so the meaning survives without color perception.
+var FLAG_SYMBOL = {
+  flagged: "✗", required_not_posted: "✗",
+  substantively_different: "✗", flipped: "✗",
+  unbridgeable: "✗",
+  identical: "✓", concordant: "✓",
+  not_flagged: "✓", posted: "✓",
+  unscoreable: "~", refinement: "~", not_required: "~",
+  dossiergap_direct: "✓"
+};
+function flagSymbol(v) {
+  return FLAG_SYMBOL[v] || "";
 }
 // HTML-entity-escape — required because innerHTML is used below for
 // performance. Without this, a study label with <img onerror=...> XSSes.
@@ -162,17 +205,29 @@ function render() {
     var raw = t[f];
     var v = esc(raw);
     var cls = safeClass(raw);
+    var symbol = flagSymbol(raw);
+    var symHtml = symbol
+      ? '<span class="flag-symbol" aria-hidden="true">' + symbol + '</span>'
+      : '';
     rows += '<div class="flag-row"><span class="flag-label">' + esc(f) + '</span>'
-          + '<span class="flag-value flag-value-' + cls + '">' + v + '</span></div>';
+          + '<span class="flag-value flag-value-' + cls + '">'
+          + symHtml + v + '</span></div>';
   }
   document.getElementById("trial-card-host").innerHTML =
-    '<div class="trial-card"><h2>' + fmt(t.Study) + '</h2>' + rows
+    '<div class="trial-card" tabindex="-1"><h2>' + fmt(t.Study) + '</h2>'
+    + rows
     + '<div class="controls">'
     + '<button class="confirm" data-trial-index="' + idx + '" onclick="record(\'confirm\')">Confirm</button>'
     + '<button class="disagree" onclick="record(\'disagree\')">Disagree</button>'
     + '<button class="skip" onclick="record(\'skip\')">Skip</button>'
+    + '<span class="status-msg" id="status-msg" role="status" aria-live="polite"></span>'
     + '</div></div>';
   document.getElementById("cur").textContent = (idx + 1);
+  // Move focus to the new card so keyboard users land on the new content
+  // instead of the now-stale Next/Previous button. tabindex=-1 makes the
+  // card focusable without inserting it into the natural Tab order.
+  var card = document.querySelector(".trial-card");
+  if (card && typeof card.focus === "function") { card.focus(); }
 }
 function next() {
   if (idx < TRIALS.length - 1) { idx += 1; }
@@ -192,6 +247,7 @@ function downloadJson() {
   a.download = "tta-verifications.json";
   a.click();
   setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 1000);
+  setStatus("Downloaded tta-verifications.json");
 }
 document.getElementById("total").textContent = TRIALS.length;
 document.getElementById("prev").onclick = prev;

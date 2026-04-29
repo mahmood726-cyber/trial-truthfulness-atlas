@@ -73,3 +73,14 @@ def test_verify_one_requires_fixture_mode_in_v0_1_x():
     """v0.1.x has no real-data verify-one path; flag is now honored."""
     rc = cli.main(["verify-one", "--nct", "NCT01035255"])
     assert rc == 2  # deferred to v0.2.0
+
+
+def test_verify_one_unknown_nct_returns_1(tmp_path, fixtures_dir, capsys, monkeypatch):
+    """The 'NCT not found' path was previously untested."""
+    monkeypatch.setattr(cli, "_resolve_fixtures_dir", lambda: fixtures_dir)
+    monkeypatch.setattr(cli, "_resolve_out_dir", lambda: tmp_path / "out")
+    monkeypatch.setattr(cli, "_make_ollama_client", lambda: _stub_client())
+    rc = cli.main(["verify-one", "--nct", "NCT99000999", "--fixture-mode"])
+    assert rc == 1
+    out = capsys.readouterr().out
+    assert "NCT99000999 not found" in out

@@ -47,7 +47,9 @@ def _table_html(atlas: pd.DataFrame) -> str:
             for c in cols
         )
         rows.append(f"<tr>{cells}</tr>")
-    return f'<table class="atlas"><thead><tr>{head}</tr></thead><tbody>{"".join(rows)}</tbody></table>'
+    table = (f'<table class="atlas"><thead><tr>{head}</tr></thead>'
+             f'<tbody>{"".join(rows)}</tbody></table>')
+    return f'<div class="table-wrap">{table}</div>'
 
 
 _CSS = """
@@ -62,10 +64,14 @@ h1 { border-bottom: 2px solid #333; padding-bottom: 0.3em; }
 .pill-flipped, .pill-unbridgeable { background: #ffd9d9; }
 .pill-not_flagged, .pill-identical, .pill-concordant, .pill-posted { background: #d9f0d9; }
 .pill-unscoreable, .pill-refinement, .pill-not_required { background: #f0e6c0; }
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 table.atlas { width: 100%; border-collapse: collapse; margin-top: 1em; font-size: 0.88em; }
 table.atlas th, table.atlas td { border: 1px solid #ddd; padding: 0.4em; text-align: left; }
 table.atlas thead { background: #333; color: #fff; }
 table.atlas tbody tr:nth-child(even) { background: #fafafa; }
+@media (max-width: 600px) {
+  table.atlas { font-size: 0.78em; min-width: 600px; }
+}
 """.strip()
 
 

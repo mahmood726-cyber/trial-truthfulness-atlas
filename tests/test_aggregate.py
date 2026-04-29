@@ -67,14 +67,32 @@ def test_rollup_per_flag_counts(sample_atlas):
 
 
 def test_rollup_crosses_null_when_ci_includes_zero(sample_atlas):
-    # Add CI columns
+    # v0.1.x convention: crosses_null comes from the FIRST non-null trial CI
+    # in the group (proper per-MA pooled CI is v0.2.0 work).
     df = sample_atlas.copy()
     df["ma_ci_low"] = [-0.3, -0.2, None, -0.05, -0.4]
     df["ma_ci_high"] = [-0.1, 0.0, None, 0.15, -0.2]
     out = aggregate.ma_rollup(df)
     cd001 = out[out["review_id"] == "CD001_pub1"].iloc[0]
     cd002 = out[out["review_id"] == "CD002_pub1"].iloc[0]
-    # CD001 pooled effect derived from row aggregation; the simplest
-    # convention for v0.1.0 = first non-null row's CI bracket
-    assert cd001["crosses_null"] in {True, False}
-    assert cd002["crosses_null"] in {True, False}
+    # CD001 first row CI = [-0.3, -0.1] — does NOT include 0.0 → False.
+    # CD002 first row CI = [-0.05, 0.15] — DOES include 0.0 → True.
+    # Pandas may store these as numpy.bool_; compare by value not identity.
+    assert bool(cd001["crosses_null"]) is False
+    assert bool(cd002["crosses_null"]) is True
+
+
+def test_rollup_handles_truly_empty_dataframe():
+    """Per Sentinel P1-empty-dataframe-access regression: ma_rollup must
+    not crash on a zero-row input. v0.1.0 test covered the wrong condition
+    (a non-empty MA group) — this exercises the actual early-return path."""
+    empty = pd.DataFrame(columns=[
+        "review_id", "review_doi", "bridge_method", "outcome_drift",
+        "n_drift", "direction_concordance", "results_posting",
+    ])
+    out = aggregate.ma_rollup(empty)
+    assert isinstance(out, pd.DataFrame)
+    assert len(out) == 0
+    # Schema preserved: columns match the populated-output contract.
+    assert "n_trials" in out.columns
+    assert "crosses_null" in out.columns

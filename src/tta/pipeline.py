@@ -85,6 +85,8 @@ def _enrich_with_aact(
 
 
 def _atlas_columns_in_order(df: pd.DataFrame) -> pd.DataFrame:
+    """Return a NEW DataFrame with the atlas's pinned 16-column schema.
+    Missing columns are filled with NaN. Does NOT mutate the input."""
     cols = [
         "nct_id", "review_id", "review_doi", "Study",
         "bridge_method", "bridge_confidence",
@@ -93,10 +95,7 @@ def _atlas_columns_in_order(df: pd.DataFrame) -> pd.DataFrame:
         "registered_effect_log", "ma_effect_log", "direction_concordance",
         "results_posting",
     ]
-    for c in cols:
-        if c not in df.columns:
-            df[c] = None
-    return df[cols]
+    return df.reindex(columns=cols)
 
 
 def run_5trial_fixture(
