@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tta"
+version = "0.1.0"
+description = "Trial Truthfulness Atlas — 5th Pairwise70 atlas"
+requires-python = ">=3.11"
+authors = [{name = "Mahmood Ahmad", email = "mahmood726@gmail.com"}]
+dependencies = [
+    "pandas>=2.2",
+    "pyarrow>=15",
+    "pyreadr>=0.5",
+    "requests>=2.31",
+    "lxml>=5.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "pytest-cov>=5.0"]
+
+[project.scripts]
+tta = "tta.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
