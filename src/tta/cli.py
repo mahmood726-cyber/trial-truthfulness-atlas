@@ -24,6 +24,11 @@ def _make_ollama_client() -> OllamaClient:
     return OllamaClient()
 
 
+def _resolve_snapshot_date(args: argparse.Namespace) -> date:
+    raw = getattr(args, "snapshot_date", None) or config.SNAPSHOT_DATE
+    return date.fromisoformat(raw)
+
+
 def cmd_preflight(args: argparse.Namespace) -> int:
     checks = preflight.run_checks()
     print(preflight.format_action_list(checks))
@@ -32,16 +37,17 @@ def cmd_preflight(args: argparse.Namespace) -> int:
 
 def cmd_build(args: argparse.Namespace) -> int:
     out_dir = _resolve_out_dir()
+    snapshot = _resolve_snapshot_date(args)
     if args.fixture_mode:
         atlas, rollup = pipeline.run_5trial_fixture(
             fixtures_dir=_resolve_fixtures_dir(),
             out_dir=out_dir,
-            snapshot_date=date(2026, 4, 12),
+            snapshot_date=snapshot,
             ollama_client=_make_ollama_client(),
         )
     else:
-        # Full sweep is v0.2.0 work; keep v0.1.0 honest by routing to fixture.
-        print("Full Pairwise70 sweep is deferred to v0.2.0. Use --fixture-mode for v0.1.0.")
+        # Full sweep is v0.2.0 work; keep v0.1.x honest by routing to fixture.
+        print("Full Pairwise70 sweep is deferred to v0.2.0. Use --fixture-mode for v0.1.x.")
         return 2
     atlas_dashboard.write(atlas, out_dir / "dashboard.html",
                           title=f"Trial Truthfulness Atlas v{__import__('tta').__version__}")
@@ -58,11 +64,15 @@ def cmd_sweep(args: argparse.Namespace) -> int:
 
 
 def cmd_verify_one(args: argparse.Namespace) -> int:
+    if not args.fixture_mode:
+        print("Real-data verify-one is deferred to v0.2.0. Pass --fixture-mode "
+              "to inspect a fixture trial.")
+        return 2
     out_dir = _resolve_out_dir()
     atlas, _ = pipeline.run_5trial_fixture(
         fixtures_dir=_resolve_fixtures_dir(),
         out_dir=out_dir,
-        snapshot_date=date(2026, 4, 12),
+        snapshot_date=_resolve_snapshot_date(args),
         ollama_client=_make_ollama_client(),
     )
     target = atlas[atlas["nct_id"] == args.nct]
@@ -77,22 +87,31 @@ def cmd_verify_one(args: argparse.Namespace) -> int:
     return 0
 
 
+def _add_snapshot_arg(p: argparse.ArgumentParser) -> None:
+    p.add_argument("--snapshot-date", dest="snapshot_date", default=None,
+                   help="ISO date (YYYY-MM-DD) of the AACT snapshot; "
+                        "defaults to TTA_SNAPSHOT_DATE env or config.SNAPSHOT_DATE")
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="tta", description="Trial Truthfulness Atlas")
     sub = p.add_subparsers(dest="cmd", required=True)
 
     sub.add_parser("preflight", help="check external prereqs")
 
-    b = sub.add_parser("build", help="build atlas + dashboards (fixture mode in v0.1.0)")
+    b = sub.add_parser("build", help="build atlas + dashboards (fixture mode in v0.1.x)")
     b.add_argument("--fixture-mode", action="store_true",
                    help="run on the 5-trial test fixture instead of real data")
+    _add_snapshot_arg(b)
 
-    s = sub.add_parser("sweep", help="alias for build (v0.1.0)")
+    s = sub.add_parser("sweep", help="alias for build (v0.1.x)")
     s.add_argument("--fixture-mode", action="store_true")
+    _add_snapshot_arg(s)
 
     v = sub.add_parser("verify-one", help="print all flags for one NCT")
     v.add_argument("--nct", required=True, help="CT.gov NCT identifier")
     v.add_argument("--fixture-mode", action="store_true")
+    _add_snapshot_arg(v)
 
     return p
 

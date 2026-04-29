@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>TTA verification (v0.1.1)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta property="og:title" content="TTA verification (v0.1.2)">
+<meta property="og:type" content="website">
+<meta property="og:description" content="Trial Truthfulness Atlas verification UI — confirm or disagree with algorithmic flag decisions, one trial at a time.">
+<title>TTA verification (v0.1.2)</title>
 <style>body { font-family: -apple-system, system-ui, sans-serif; max-width: 900px;
        margin: 1em auto; padding: 0 1em; color: #1a1a1a; }
 header { display: flex; justify-content: space-between; align-items: baseline; }
@@ -31,8 +35,8 @@ header { display: flex; justify-content: space-between; align-items: baseline; }
 </head>
 <body>
 <header>
-  <h1>TTA verification (v0.1.1)</h1>
-  <span class="progress">Trial <span id="cur">1</span> of <span id="total"></span></span>
+  <h1>TTA verification (v0.1.2)</h1>
+  <span class="progress" aria-live="polite" aria-atomic="true">Trial <span id="cur">1</span> of <span id="total"></span></span>
 </header>
 <div id="trial-card-host"></div>
 <div class="nav">
@@ -41,7 +45,7 @@ header { display: flex; justify-content: space-between; align-items: baseline; }
   <button id="export">Export verifications</button>
 </div>
 <script>
-var TRIALS = [{"nct_id": "NCT01035255", "review_id": "CDFAKE001_pub1", "review_doi": "10.1002/14651858.CD012612.pub2", "Study": "McMurray 2014", "bridge_method": "dossiergap_direct", "registered_outcome": "Composite endpoint of CV death and HF hospitalisation", "ma_extracted_outcome": "CV death or HF hosp", "outcome_drift": "identical", "registered_n": 8442, "ma_n": 8442, "n_drift": "not_flagged", "registered_effect_log": -0.2231435513142097, "ma_effect_log": -0.223, "direction_concordance": "concordant", "results_posting": "posted"}, {"nct_id": "NCT02861534", "review_id": "CDFAKE001_pub1", "review_doi": "10.1002/14651858.CD013650.pub2", "Study": "Armstrong 2020", "bridge_method": "dossiergap_direct", "registered_outcome": "Time to first occurrence of CV death or HF hospitalisation", "ma_extracted_outcome": "CV death or HF hosp", "outcome_drift": "refinement", "registered_n": 5050, "ma_n": 5050, "n_drift": "not_flagged", "registered_effect_log": -0.10536051565782628, "ma_effect_log": -0.105, "direction_concordance": "concordant", "results_posting": "posted"}, {"nct_id": "NCT99999001", "review_id": "CDFAKE002_pub1", "review_doi": "10.1002/14651858.CDFAKE001.pub1", "Study": "Synthetic-NDrift 2018", "bridge_method": "dossiergap_direct", "registered_outcome": "All-cause mortality", "ma_extracted_outcome": "Mortality", "outcome_drift": "identical", "registered_n": 1000, "ma_n": 700, "n_drift": "flagged", "registered_effect_log": -0.15082288973458366, "ma_effect_log": -0.15, "direction_concordance": "concordant", "results_posting": "required_not_posted"}, {"nct_id": null, "review_id": "CDFAKE002_pub1", "review_doi": "10.1002/14651858.CDFAKE002.pub1", "Study": "Unknown Author 1999", "bridge_method": "unbridgeable", "registered_outcome": null, "ma_extracted_outcome": "Mortality", "outcome_drift": "unscoreable", "registered_n": null, "ma_n": 200, "n_drift": "unscoreable", "registered_effect_log": null, "ma_effect_log": -0.05, "direction_concordance": "unscoreable", "results_posting": "not_required"}, {"nct_id": "NCT01106014", "review_id": "CDFAKE003_pub1", "review_doi": "10.1002/14651858.CD011162.pub2", "Study": "Sitbon 2015", "bridge_method": "dossiergap_direct", "registered_outcome": "Composite morbidity-mortality endpoint", "ma_extracted_outcome": "Morbidity-mortality composite", "outcome_drift": "identical", "registered_n": 1156, "ma_n": 1156, "n_drift": "not_flagged", "registered_effect_log": -0.4942963218147801, "ma_effect_log": -0.4943, "direction_concordance": "concordant", "results_posting": "posted"}];
+var TRIALS = [{"nct_id": "NCT01035255", "review_id": "CDFAKE001_pub1", "review_doi": "10.1002/14651858.CD012612.pub2", "Study": "McMurray 2014", "bridge_method": "dossiergap_direct", "registered_outcome": "Composite endpoint of CV death and HF hospitalisation", "ma_extracted_outcome": "CV death or HF hosp", "outcome_drift": "identical", "registered_n": 8442, "ma_n": 8442, "n_drift": "not_flagged", "registered_effect_log": -0.2231435513142097, "ma_effect_log": -0.223, "direction_concordance": "concordant", "results_posting": "posted"}, {"nct_id": "NCT02861534", "review_id": "CDFAKE001_pub1", "review_doi": "10.1002/14651858.CD013650.pub2", "Study": "Armstrong 2020", "bridge_method": "dossiergap_direct", "registered_outcome": "Time to first occurrence of CV death or HF hospitalisation", "ma_extracted_outcome": "CV death or HF hosp", "outcome_drift": "refinement", "registered_n": 5050, "ma_n": 5050, "n_drift": "not_flagged", "registered_effect_log": -0.10536051565782628, "ma_effect_log": -0.105, "direction_concordance": "concordant", "results_posting": "posted"}, {"nct_id": "NCT99999001", "review_id": "CDFAKE002_pub1", "review_doi": "10.1002/14651858.CDFAKE001.pub1", "Study": "Synthetic-NDrift 2018", "bridge_method": "dossiergap_direct", "registered_outcome": "All-cause mortality", "ma_extracted_outcome": "Mortality", "outcome_drift": "identical", "registered_n": 1000, "ma_n": 700, "n_drift": "flagged", "registered_effect_log": -0.15082288973458366, "ma_effect_log": -0.15, "direction_concordance": "concordant", "results_posting": "required_not_posted"}, {"nct_id": null, "review_id": "CDFAKE002_pub1", "review_doi": "10.1002/14651858.CDFAKE002.pub1", "Study": "Unknown Author 1999", "bridge_method": "unbridgeable", "registered_outcome": null, "ma_extracted_outcome": "Mortality", "outcome_drift": "unscoreable", "registered_n": null, "ma_n": 200, "n_drift": "unscoreable", "registered_effect_log": null, "ma_effect_log": -0.05, "direction_concordance": "unscoreable", "results_posting": "not_required"}, {"nct_id": "NCT01106014", "review_id": "CDFAKE003_pub1", "review_doi": "10.1002/14651858.CD011162.pub2", "Study": "Sitbon 2015", "bridge_method": "dossiergap_direct", "registered_outcome": "Composite morbidity-mortality endpoint", "ma_extracted_outcome": "Morbidity-mortality composite", "outcome_drift": "substantively_different", "registered_n": 1156, "ma_n": 1156, "n_drift": "not_flagged", "registered_effect_log": -0.4942963218147801, "ma_effect_log": -0.4943, "direction_concordance": "concordant", "results_posting": "posted"}];
 var STORAGE_KEY = "tta/trial-truthfulness-atlas/verification-v0.1.0";
 var idx = 0;
 

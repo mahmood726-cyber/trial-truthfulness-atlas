@@ -41,8 +41,10 @@ def classify(
 
 def compute_dataframe(df: pd.DataFrame, epsilon: Optional[float] = None) -> pd.DataFrame:
     out = df.copy()
+    # `.get()` (not `[]`) so a missing column returns None rather than KeyError.
+    # `classify` already maps None -> unscoreable.
     out["direction_concordance"] = [
-        classify(row["registered_effect_log"], row["ma_effect_log"], epsilon=epsilon)
+        classify(row.get("registered_effect_log"), row.get("ma_effect_log"), epsilon=epsilon)
         for _, row in df.iterrows()
     ]
     return out

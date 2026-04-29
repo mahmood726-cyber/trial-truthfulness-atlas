@@ -43,6 +43,33 @@ def test_verify_one_prints_flags_for_known_nct(tmp_path, fixtures_dir, capsys, m
 def _stub_client():
     c = MagicMock()
     c.get_model_version.return_value = "gemma2:9b@stub_for_test"
-    c.classify.side_effect = ["identical", "refinement", "substantively_different",
-                              "identical"]
+    # Pipeline-processing order (v0.1.1+): PARADIGM, VICTORIA, FIXTURE-N, GRIPHON.
+    c.classify.side_effect = ["identical", "refinement", "identical",
+                              "substantively_different"]
     return c
+
+
+def test_snapshot_date_config_default_used_when_no_arg(monkeypatch):
+    """v0.1.2: snapshot date defaults to config.SNAPSHOT_DATE; CLI arg overrides."""
+    from tta import config as config_mod
+
+    monkeypatch.setattr(config_mod, "SNAPSHOT_DATE", "2027-09-15")
+    p = cli.build_parser()
+    ns = p.parse_args(["build", "--fixture-mode"])
+    resolved = cli._resolve_snapshot_date(ns)
+    assert resolved == date(2027, 9, 15)
+
+
+def test_snapshot_date_cli_arg_overrides_config(monkeypatch):
+    from tta import config as config_mod
+
+    monkeypatch.setattr(config_mod, "SNAPSHOT_DATE", "2027-09-15")
+    p = cli.build_parser()
+    ns = p.parse_args(["build", "--fixture-mode", "--snapshot-date", "2030-01-31"])
+    assert cli._resolve_snapshot_date(ns) == date(2030, 1, 31)
+
+
+def test_verify_one_requires_fixture_mode_in_v0_1_x():
+    """v0.1.x has no real-data verify-one path; flag is now honored."""
+    rc = cli.main(["verify-one", "--nct", "NCT01035255"])
+    assert rc == 2  # deferred to v0.2.0

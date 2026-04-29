@@ -158,6 +158,27 @@ def run_5trial_fixture(
     ))
 
     out_dir.mkdir(parents=True, exist_ok=True)
-    atlas.to_csv(out_dir / "atlas.csv", index=False, lineterminator="\n")
-    rollup.to_csv(out_dir / "ma_rollup.csv", index=False, lineterminator="\n")
+    _safe_to_csv(atlas, out_dir / "atlas.csv")
+    _safe_to_csv(rollup, out_dir / "ma_rollup.csv")
     return atlas, rollup
+
+
+# CSV formula-injection chars per the lessons.md rule. When any of these
+# appears as the first char of a string cell, Excel evaluates the cell as a
+# formula. Prepend `'` (apostrophe) to neutralise without changing visible
+# content. Note: `-` is intentionally NOT in this set per the same lesson —
+# negative numbers begin with `-` and we want them parsed as numbers.
+_CSV_FORMULA_CHARS = ("=", "+", "@", "\t", "\r")
+
+
+def _csv_safe(value):
+    if isinstance(value, str) and value.startswith(_CSV_FORMULA_CHARS):
+        return "'" + value
+    return value
+
+
+def _safe_to_csv(df: pd.DataFrame, path: Path) -> None:
+    safe = df.copy()
+    for col in safe.select_dtypes(include=["object", "string"]).columns:
+        safe[col] = safe[col].map(_csv_safe)
+    safe.to_csv(path, index=False, lineterminator="\n")

@@ -3,10 +3,30 @@
 from __future__ import annotations
 
 from typing import Set
+from urllib.parse import urlparse
 
 import requests
 
 from tta import config
+
+_LOOPBACK_HOSTS = frozenset({"localhost", "127.0.0.1", "::1", "[::1]"})
+
+
+class RemoteOllamaError(RuntimeError):
+    """Raised when OllamaClient is asked to call a non-loopback URL without
+    the TTA_ALLOW_REMOTE_OLLAMA opt-in. Prevents accidental data exfiltration
+    of trial outcomes via a hostile env var."""
+
+
+def _assert_loopback_or_opted_in(url: str) -> None:
+    if config.ALLOW_REMOTE_OLLAMA:
+        return
+    host = urlparse(url).hostname or ""
+    if host.lower() not in _LOOPBACK_HOSTS:
+        raise RemoteOllamaError(
+            f"refusing to call non-loopback ollama URL ({url!r}). "
+            "Set TTA_ALLOW_REMOTE_OLLAMA=1 if this is intentional."
+        )
 
 
 class OllamaClient:
@@ -14,6 +34,7 @@ class OllamaClient:
         self.url = url or config.OLLAMA_URL
         self.model = model or config.OLLAMA_MODEL
         self.timeout = timeout
+        _assert_loopback_or_opted_in(self.url)
 
     def get_model_version(self) -> str:
         r = requests.get(f"{self.url}/api/tags", timeout=10)

@@ -37,7 +37,9 @@ def _summary_block_html(atlas: pd.DataFrame) -> str:
 def _table_html(atlas: pd.DataFrame) -> str:
     cols = ["nct_id", "Study", "review_id", "bridge_method",
             "outcome_drift", "n_drift", "direction_concordance", "results_posting"]
-    head = "".join(f"<th>{escape(c)}</th>" for c in cols)
+    # scope="col" lets screen readers correctly associate header cells with
+    # the data cells in their column.
+    head = "".join(f'<th scope="col">{escape(c)}</th>' for c in cols)
     rows = []
     for _, r in atlas.iterrows():
         cells = "".join(
@@ -70,18 +72,24 @@ table.atlas tbody tr:nth-child(even) { background: #fafafa; }
 def render(atlas: pd.DataFrame, title: str) -> str:
     summary = _summary_block_html(atlas)
     table = _table_html(atlas)
+    title_esc = escape(title)
     return (
         "<!doctype html>\n"
         '<html lang="en">\n'
         '<head><meta charset="utf-8">'
-        f"<title>{escape(title)}</title>"
+        '<meta name="viewport" content="width=device-width, initial-scale=1">'
+        f'<meta property="og:title" content="{title_esc}">'
+        '<meta property="og:type" content="website">'
+        '<meta property="og:description" content="Trial Truthfulness Atlas — '
+        'integrity flags between CT.gov registration and Cochrane MA inputs.">'
+        f"<title>{title_esc}</title>"
         f"<style>{_CSS}</style></head>\n"
-        "<body>\n"
-        f"<h1>{escape(title)}</h1>\n"
+        "<body>\n<main>\n"
+        f"<h1>{title_esc}</h1>\n"
         f"<p><strong>Trials:</strong> {len(atlas)}</p>\n"
         f"{summary}\n"
         f"{table}\n"
-        "</body>\n</html>\n"
+        "</main>\n</body>\n</html>\n"
     )
 
 

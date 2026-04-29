@@ -72,13 +72,17 @@ _TEMPLATE = """\
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta property="og:title" content="__TITLE__">
+<meta property="og:type" content="website">
+<meta property="og:description" content="Trial Truthfulness Atlas verification UI — confirm or disagree with algorithmic flag decisions, one trial at a time.">
 <title>__TITLE__</title>
 <style>__CSS__</style>
 </head>
 <body>
 <header>
   <h1>__TITLE__</h1>
-  <span class="progress">Trial <span id="cur">1</span> of <span id="total"></span></span>
+  <span class="progress" aria-live="polite" aria-atomic="true">Trial <span id="cur">1</span> of <span id="total"></span></span>
 </header>
 <div id="trial-card-host"></div>
 <div class="nav">

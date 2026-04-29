@@ -70,6 +70,29 @@ def test_5_trial_pipeline_writes_csv_files(tmp_path, fixtures_dir, stub_ollama):
     assert (out_dir / "ma_rollup.csv").exists()
 
 
+def test_csv_formula_injection_is_neutralised(tmp_path, fixtures_dir, stub_ollama):
+    """Per lessons.md: cells starting with =+@ tab CR execute as Excel formulas.
+    The pipeline must prepend an apostrophe to neutralise."""
+    out_dir = tmp_path / "out"
+    out_dir.mkdir()
+    pipeline.run_5trial_fixture(
+        fixtures_dir=fixtures_dir,
+        out_dir=out_dir,
+        snapshot_date=date(2026, 4, 12),
+        ollama_client=stub_ollama,
+    )
+    # Sanity check: the helper was used; no string cell starts with a
+    # formula char in the produced CSV.
+    csv_text = (out_dir / "atlas.csv").read_text(encoding="utf-8")
+    for line in csv_text.splitlines()[1:]:  # skip header
+        for cell in line.split(","):
+            cell = cell.strip().strip('"')
+            if cell:
+                # Formula chars at start would mean the scrubber missed it.
+                assert cell[0] not in ("=", "+", "@", "\t", "\r"), \
+                    f"unsafe cell start: {cell!r}"
+
+
 def test_5_trial_pipeline_handles_empty_input(tmp_path, fixtures_dir, stub_ollama):
     """Per Sentinel P1-empty-dataframe-access: empty input must not crash."""
     out_dir = tmp_path / "out"

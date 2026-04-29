@@ -28,7 +28,7 @@ def test_classify_returns_label_on_clean_response(monkeypatch):
         return _StubResponse({"response": "identical\n"})
 
     monkeypatch.setattr(ollama_client.requests, "post", fake_post)
-    client = ollama_client.OllamaClient(url="http://x:11434", model="gemma2:9b")
+    client = ollama_client.OllamaClient(url="http://localhost:11434", model="gemma2:9b")
     label = client.classify(
         prompt_text="prompt body",
         allowed_labels={"identical", "refinement", "substantively_different"},
@@ -44,7 +44,7 @@ def test_classify_strips_whitespace_and_quotes(monkeypatch):
         ollama_client.requests, "post",
         lambda url, json=None, timeout=None: _StubResponse({"response": "  'refinement' \n"}),
     )
-    client = ollama_client.OllamaClient(url="http://x:11434", model="gemma2:9b")
+    client = ollama_client.OllamaClient(url="http://localhost:11434", model="gemma2:9b")
     label = client.classify("p", {"identical", "refinement", "substantively_different"})
     assert label == "refinement"
 
@@ -54,7 +54,7 @@ def test_classify_returns_unscoreable_on_unknown_label(monkeypatch):
         ollama_client.requests, "post",
         lambda url, json=None, timeout=None: _StubResponse({"response": "maybe?"}),
     )
-    client = ollama_client.OllamaClient(url="http://x:11434", model="gemma2:9b")
+    client = ollama_client.OllamaClient(url="http://localhost:11434", model="gemma2:9b")
     label = client.classify("p", {"identical", "refinement", "substantively_different"})
     assert label == "unscoreable"
 
@@ -67,7 +67,7 @@ def test_get_model_version_returns_digest(monkeypatch):
         ]})
 
     monkeypatch.setattr(ollama_client.requests, "get", fake_get)
-    client = ollama_client.OllamaClient(url="http://x:11434", model="gemma2:9b")
+    client = ollama_client.OllamaClient(url="http://localhost:11434", model="gemma2:9b")
     assert client.get_model_version() == "gemma2:9b@ff02c3702f32"
 
 
@@ -81,6 +81,24 @@ def test_classify_raises_on_http_error(monkeypatch):
         ollama_client.requests, "post",
         lambda url, json=None, timeout=None: BadResp(),
     )
-    client = ollama_client.OllamaClient(url="http://x:11434", model="gemma2:9b")
+    client = ollama_client.OllamaClient(url="http://localhost:11434", model="gemma2:9b")
     with pytest.raises(RuntimeError):
         client.classify("p", {"identical"})
+
+
+def test_remote_url_refused_without_optin(monkeypatch):
+    """SSRF / data-exfiltration guard: non-loopback URLs raise unless the
+    user explicitly opts in via TTA_ALLOW_REMOTE_OLLAMA=1."""
+    # Ensure opt-in is OFF for this test
+    monkeypatch.setattr(ollama_client.config, "ALLOW_REMOTE_OLLAMA", False)
+    with pytest.raises(ollama_client.RemoteOllamaError):
+        ollama_client.OllamaClient(url="http://attacker.example.com:11434",
+                                    model="gemma2:9b")
+
+
+def test_remote_url_allowed_with_optin(monkeypatch):
+    monkeypatch.setattr(ollama_client.config, "ALLOW_REMOTE_OLLAMA", True)
+    # Should not raise
+    client = ollama_client.OllamaClient(url="http://192.168.1.50:11434",
+                                         model="gemma2:9b")
+    assert client.url == "http://192.168.1.50:11434"

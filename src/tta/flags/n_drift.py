@@ -51,6 +51,8 @@ def classify(
     if registered_n <= 0:
         return "unscoreable"
     rel = abs(ma_n - registered_n) / registered_n
+    # Strict `>`, not `>=`. Boundary case (drift exactly at the threshold) is
+    # treated as not_flagged. Matches FDAAA audit convention ("more than X%").
     return "flagged" if rel > threshold else "not_flagged"
 
 
