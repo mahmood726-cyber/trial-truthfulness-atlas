@@ -22,6 +22,50 @@ from tta.judge import cache as cache_mod
 logger = logging.getLogger(__name__)
 
 
+def _select_primary_hr(
+    aact_outcome_analyses: pd.DataFrame,
+    outcomes: Optional[pd.DataFrame],
+) -> pd.Series:
+    """Return a Series keyed by nct_id with the HR param_value to use.
+
+    When the AACT `outcomes` table is available, join outcome_analyses to
+    outcomes on outcome_id and pick the row whose outcome_type == 'Primary'.
+    If a trial has no Primary-type HR row, fall back to its first available
+    HR row (by row order).  Without the outcomes table, fall back to the
+    old drop_duplicates("nct_id") behaviour.
+    """
+    hr_rows = aact_outcome_analyses[
+        aact_outcome_analyses["param_type"] == "Hazard Ratio"
+    ].copy()
+    if hr_rows.empty:
+        return pd.Series(dtype=float)
+
+    if outcomes is not None and "outcome_id" in hr_rows.columns and "id" in outcomes.columns:
+        # Join to classify each HR row as Primary / non-Primary.
+        merged = hr_rows.merge(
+            outcomes[["id", "outcome_type"]].rename(columns={"id": "outcome_id"}),
+            on="outcome_id",
+            how="left",
+        )
+        # Normalise case so 'Primary' and 'primary' both match.
+        merged["_is_primary"] = merged["outcome_type"].str.lower().str.strip() == "primary"
+
+        # Per-trial: prefer primary rows; fall back to first available row.
+        selected = []
+        for nct, group in merged.groupby("nct_id"):
+            primary = group[group["_is_primary"]]
+            chosen = primary.iloc[0] if not primary.empty else group.iloc[0]
+            selected.append(chosen)
+        if not selected:
+            return pd.Series(dtype=float)
+        best = pd.DataFrame(selected)
+    else:
+        # Legacy path: no outcomes table supplied; keep first HR row per trial.
+        best = hr_rows.drop_duplicates("nct_id")
+
+    return best.set_index("nct_id")["param_value"].astype(float)
+
+
 def _enrich_with_aact(
     bridged: pd.DataFrame,
     aact_studies: pd.DataFrame,
@@ -29,15 +73,10 @@ def _enrich_with_aact(
     aact_calculated: pd.DataFrame,
     aact_outcome_analyses: pd.DataFrame,
     aact_interventions: pd.DataFrame,
+    outcomes: Optional[pd.DataFrame] = None,
 ) -> pd.DataFrame:
     out = bridged.copy()
 
-    # `drop_duplicates("nct_id")` keeps the FIRST primary-outcome row per
-    # trial. AACT does not guarantee row order; trials with co-primary
-    # endpoints (separate rows for, e.g., CV death and HF hospitalisation)
-    # have their non-first co-primary discarded here. v0.2.0 should join on
-    # `outcome_id` / `result_groups` and pick the row whose Cochrane outcome
-    # label most closely matches the MA-extracted outcome.
     primary_outcomes = (
         aact_design_outcomes[aact_design_outcomes["outcome_type"] == "primary"]
         .drop_duplicates("nct_id")
@@ -52,12 +91,7 @@ def _enrich_with_aact(
     )
     out["registered_n"] = out["nct_id"].map(enrolment)
 
-    hr = (
-        aact_outcome_analyses[aact_outcome_analyses["param_type"] == "Hazard Ratio"]
-        .drop_duplicates("nct_id")
-        .set_index("nct_id")["param_value"]
-        .astype(float)
-    )
+    hr = _select_primary_hr(aact_outcome_analyses, outcomes)
     # math.log raises ValueError on hr <= 0; AACT param_value is free-text and
     # may legitimately or accidentally hold non-positive values. Guard the call.
     out["registered_effect_log"] = out["nct_id"].map(
@@ -129,24 +163,37 @@ def run_5trial_fixture(
                 len(pw), pw["review_id"].nunique() if not pw.empty else 0)
 
     dg = bridge.load_dossiergap(fixtures_dir / "dossiergap_sample.csv")
-    bridged = bridge.bridge_pairwise70(pw, dossiergap=dg, aact_id_information=None)
+    # Load tables needed for bridge methods 2 and 4 before the bridge call.
+    studies = ingest.load_aact_table(aact_dir, "studies")
+    id_info_path = aact_dir / "id_information.txt"
+    aact_id_information = ingest.load_aact_table(aact_dir, "id_information") if id_info_path.is_file() else None
+    bridged = bridge.bridge_pairwise70(
+        pw, dossiergap=dg,
+        aact_id_information=aact_id_information,
+        aact_studies=studies,
+    )
     logger.info("Flag 0 bridge resolution: %d/%d (%.1f%%) of trials bridged to NCT",
                 int((bridged["bridge_method"] != "unbridgeable").sum()), len(bridged),
                 100 * bridge.resolution_rate(bridged))
-
-    studies = ingest.load_aact_table(aact_dir, "studies")
     design_outcomes = ingest.load_aact_table(aact_dir, "design_outcomes")
     calculated = ingest.load_aact_table(aact_dir, "calculated_values")
     outcome_analyses = ingest.load_aact_table(aact_dir, "outcome_analyses")
     interventions = ingest.load_aact_table(aact_dir, "interventions")
+    # outcomes table maps outcome_id -> outcome_type so _enrich_with_aact can
+    # prefer the Primary-outcome HR row when a trial has multiple HR rows.
+    aact_outcomes_path = aact_dir / "outcomes.txt"
+    aact_outcomes = ingest.load_aact_table(aact_dir, "outcomes") if aact_outcomes_path.is_file() else None
 
     enriched = _enrich_with_aact(
         bridged, studies, design_outcomes, calculated,
-        outcome_analyses, interventions,
+        outcome_analyses, interventions, outcomes=aact_outcomes,
     )
 
     # Convert NaN in string/object columns to None so downstream guards fire correctly.
     # pandas NaN is truthy; Python None is falsy — flag compute_one guards use `not x`.
+    # Note: in pandas 3.x, StringDtype columns ignore `where(other=None)` because pandas
+    # re-encodes None as NaN for that dtype. Downstream consumers guard with pd.isnull()
+    # explicitly rather than relying solely on None-ness.
     for col in ("registered_outcome", "ma_extracted_outcome", "study_type"):
         if col in enriched.columns:
             enriched[col] = enriched[col].where(pd.notna(enriched[col]), other=None)
