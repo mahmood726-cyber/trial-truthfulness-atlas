@@ -20,7 +20,7 @@ def test_load_aact_tsv_returns_dataframe(fixtures_dir):
     df = ingest.load_aact_table(fixtures_dir / "aact_sample", "studies")
     assert isinstance(df, pd.DataFrame)
     assert "nct_id" in df.columns
-    assert len(df) == 5
+    assert len(df) == 6
 
 
 def test_load_aact_pipe_separator(fixtures_dir):

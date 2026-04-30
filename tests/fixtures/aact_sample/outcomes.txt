@@ -1,0 +1,8 @@
+id|nct_id|outcome_type|title
+1001|NCT01035255|Primary|Composite CV death or HF hospitalisation
+1002|NCT01035255|Secondary|All-cause mortality
+1003|NCT02861534|Primary|Time to first CV death or worsening HF
+1004|NCT02861534|Secondary|All-cause mortality
+1005|NCT01106014|Primary|Composite morbidity-mortality
+1006|NCT01106014|Secondary|Time to death
+1007|NCT99999001|Secondary|All-cause mortality
