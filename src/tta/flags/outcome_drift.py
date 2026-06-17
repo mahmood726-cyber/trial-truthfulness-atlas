@@ -13,6 +13,9 @@ from tta.judge.ollama_client import OllamaClient
 
 ALLOWED_LABELS = {"identical", "refinement", "substantively_different"}
 
+# V2 splits substantively_different into two more specific labels.
+ALLOWED_LABELS_V2 = {"identical", "refinement", "construct_change", "time_point_shift"}
+
 
 @dataclass(frozen=True)
 class OutcomeDriftResult:
@@ -28,7 +31,8 @@ def compute_one(
     cache: cache_mod.JudgeCache,
 ) -> OutcomeDriftResult:
     model_version = client.get_model_version()
-    if not registered_outcome or not ma_extracted_outcome:
+    # Guard against both Python None and pandas float NaN (truthy in Python).
+    if pd.isnull(registered_outcome) or not registered_outcome or pd.isnull(ma_extracted_outcome) or not ma_extracted_outcome:
         return OutcomeDriftResult(
             label="unscoreable",
             prompt_sha=prompts.OUTCOME_DRIFT_V1_SHA256,

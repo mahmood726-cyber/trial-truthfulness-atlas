@@ -75,3 +75,48 @@ def test_prompt_template_uses_safe_substitution_not_format():
     )
     assert "{brace}" in rendered
     assert "{also}" in rendered
+
+
+# ---------------------------------------------------------------------------
+# V2 prompt tests
+# ---------------------------------------------------------------------------
+
+def test_outcome_drift_v2_exists():
+    assert hasattr(prompts, "OUTCOME_DRIFT_V2")
+    assert hasattr(prompts, "OUTCOME_DRIFT_V2_SHA256")
+
+
+def test_outcome_drift_v2_has_finer_grained_labels():
+    text = prompts.OUTCOME_DRIFT_V2
+    assert "construct_change" in text
+    assert "time_point_shift" in text
+    # V1 coarse label should NOT appear as a valid option in V2.
+    assert "substantively_different" not in text
+
+
+def test_outcome_drift_v2_hash_is_stable():
+    import hashlib
+    expected = hashlib.sha256(prompts.OUTCOME_DRIFT_V2.encode("utf-8")).hexdigest()
+    assert prompts.OUTCOME_DRIFT_V2_SHA256 == expected
+
+
+def test_outcome_drift_v2_sha_differs_from_v1():
+    assert prompts.OUTCOME_DRIFT_V2_SHA256 != prompts.OUTCOME_DRIFT_V1_SHA256
+
+
+def test_render_outcome_drift_v2_inserts_inputs():
+    rendered = prompts.render_outcome_drift_v2(
+        registered_outcome="All-cause mortality",
+        ma_extracted_outcome="CV death",
+    )
+    assert "All-cause mortality" in rendered
+    assert "CV death" in rendered
+
+
+def test_outcome_drift_v2_allowed_labels_updated():
+    from tta.flags.outcome_drift import ALLOWED_LABELS_V2
+    assert "construct_change" in ALLOWED_LABELS_V2
+    assert "time_point_shift" in ALLOWED_LABELS_V2
+    assert "substantively_different" not in ALLOWED_LABELS_V2
+    assert "identical" in ALLOWED_LABELS_V2
+    assert "refinement" in ALLOWED_LABELS_V2

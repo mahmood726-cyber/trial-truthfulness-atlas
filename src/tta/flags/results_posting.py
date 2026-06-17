@@ -25,7 +25,7 @@ def _is_fdaaa_applicable(
     study_type: Optional[str],
     intervention_types: Iterable[str],
 ) -> bool:
-    if (study_type or "").lower() != "interventional":
+    if not isinstance(study_type, str) or study_type.lower() != "interventional":
         return False
     types = {(t or "").lower() for t in intervention_types}
     return bool(types & FDAAA_INTERVENTION_TYPES)

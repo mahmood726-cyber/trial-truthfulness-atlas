@@ -1,10 +1,11 @@
 {
-  "version": "0.2.0",
+  "version": "0.2.1",
   "ma_pooling": "DerSimonian-Laird tau2 + Hartung-Knapp-Sidik-Jonkman variance with q*=max(1, Q/(k-1)) floor; t_{0.975, k-1} critical for CI",
   "snapshot_date": "2026-04-12",
   "pairwise70_files": 3,
   "ollama_model": "gemma2:9b",
   "prompt_sha_outcome_drift": "83f12f540ac4ac89290e7972c83fcbdd1901dd45ba7e897207b3a98a655b84ab",
+  "prompt_sha_outcome_drift_v2": "4870d7f34664fd1d901524f46015d8d20507c5281148ea1ce114f9cb31d03dac",
   "n_drift_threshold": 0.10,
   "direction_epsilon": 0.01,
   "fixture_5trial": {

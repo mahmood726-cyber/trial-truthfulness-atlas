@@ -1,5 +1,8 @@
-nct_id|param_type|param_value|ci_lower_limit|ci_upper_limit
-NCT01035255|Hazard Ratio|0.80|0.73|0.87
-NCT02861534|Hazard Ratio|0.90|0.82|0.98
-NCT01106014|Hazard Ratio|0.61|0.46|0.81
-NCT99999001|Hazard Ratio|0.86|0.70|1.05
+id|nct_id|outcome_id|param_type|param_value|ci_lower_limit|ci_upper_limit
+2001|NCT01035255|1001|Hazard Ratio|0.80|0.73|0.87
+2002|NCT01035255|1002|Hazard Ratio|0.85|0.76|0.95
+2003|NCT02861534|1003|Hazard Ratio|0.90|0.82|0.98
+2004|NCT02861534|1004|Hazard Ratio|0.95|0.85|1.06
+2005|NCT01106014|1005|Hazard Ratio|0.61|0.46|0.81
+2006|NCT01106014|1006|Hazard Ratio|0.68|0.52|0.89
+2007|NCT99999001|1007|Hazard Ratio|0.86|0.70|1.05
